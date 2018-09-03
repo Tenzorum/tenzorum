@@ -39,7 +39,7 @@ var preparePayload = async function(targetWallet, from, to, value, data, rewardT
     //     payload.value+'","'+payload.data+'","'+payload.rewardType+'","'+payload.rewardAmount+'"');
 
     console.log("Make a POST request to http://localhost:7777/execute/" + targetWallet);
-    console.log(JSON.stringify(payload));
+    return JSON.stringify(payload);
 }
 
 var prepareTokenTransferData = async function(amount, to) {
@@ -69,23 +69,37 @@ var prepareAddMasterData = async function(account) {
     return encoded;
 }
 
-var transferEtherNoReward = async function(ethAmountInWei, toAddress){
-    let data = "0x00"; //this will be different for token transfer or any other contract function call
-    preparePayload(personalWalletAddress, publicAddress, toAddress, ethAmountInWei, data, rewardTypeEther, noReward);
+var prepareAddActionData = async function(account) {
+    let encoded = await web3.eth.abi.encodeFunctionCall({
+        name: 'addActionAccount',
+        type: 'function',
+        inputs: [{
+            type: 'address',
+            name: 'account'
+        }]
+    }, [account]);
+    return encoded;
 }
 
-var transferTokensNoReward = async function(tokenAddress, toAddress, amount){
+var transferEtherNoReward = async function(ethAmountInWei, toAddress){
+    let data = "0x00"; //this will be different for token transfer or any other contract function call
+    let payload = await preparePayload(personalWalletAddress, publicAddress, toAddress, ethAmountInWei, data, rewardTypeEther, noReward);
+    console.log(payload);
+}
+
+var transferTokensNoReward = async function(tokenAddress, amount, toAddress){
     let ethAmountInWei = 0;
     let data = await prepareTokenTransferData(amount, toAddress);
     console.log("data2", data);
-    preparePayload(personalWalletAddress, publicAddress, tokenAddress, ethAmountInWei, data, rewardTypeEther, noReward);
+    let payload = await preparePayload(personalWalletAddress, publicAddress, tokenAddress, ethAmountInWei, data, rewardTypeEther, noReward);
+    console.log(payload);
 }
 
 var addMasterNoReward = async function(account) {
     let ethAmountInWei = 0;
     let data = await prepareAddMasterData(account);
-    preparePayload(personalWalletAddress, publicAddress, personalWalletAddress, ethAmountInWei, data, rewardTypeEther, noReward);
-
+    let payload = await preparePayload(personalWalletAddress, publicAddress, personalWalletAddress, ethAmountInWei, data, rewardTypeEther, noReward);
+    console.log(payload);
 }
 
 //Transfer ether payload:
@@ -94,8 +108,9 @@ let ethAmountInWei = 1;
 transferEtherNoReward(ethAmountInWei, toAddress);
 
 //Transfer tokens payload:
-let tkmTokenAddress = "0xa8DD19d74c12083F4d3cF8B323bC3c8a9F16c605";
-transferTokensNoReward(tkmTokenAddress, web3.utils.toWei("10000", 'ether'), '0xc33506a81a0e26028bbb312027a648a625f3a354');
+let tokenAddress = "0xa8DD19d74c12083F4d3cF8B323bC3c8a9F16c605";
+let tenThousandTokens = web3.utils.toWei("10000", 'ether');
+transferTokensNoReward(tokenAddress, tenThousandTokens, toAddress);
 
 let newMasterAccount = "0xd4a0d9531Bf28C26869C526b2cAd2F2eB77D3844";
 addMasterNoReward(newMasterAccount);
