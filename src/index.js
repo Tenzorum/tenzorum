@@ -5,7 +5,7 @@ const Web3 = require('web3');
 //ropsten
 const web3 = new Web3(new Web3.providers.HttpProvider('https://ropsten.infura.io/vCE9q890Is08T4xq5qKm'));
 
-const personalWalletAddress = "0xd1c3d54255536cd50c88baed4972a127acc942a1";
+const personalWalletAddress = "0xf74694642a81a226771981cd38df9105a133c111";
 const privateKey = Buffer.from('2e5a537948b5d4dd63f690f5a82f8591cb5c41a562c9cce850adfb29a99a8cc5', 'hex');
 const publicAddress = "0x9E48c4A74D618a567CD657579B728774f35B82C5";
 
@@ -87,11 +87,25 @@ export const transferEtherNoReward = async (ethAmountInWei, toAddress) => {
     console.log(payload);
 }
 
+export const transferEtherWithEtherReward = async (ethAmountInWei, toAddress, rewardAmount) => {
+    const data = "0x00"; //this will be different for token transfer or any other contract function call
+    const payload = await preparePayload(personalWalletAddress, publicAddress, toAddress, ethAmountInWei, data, rewardTypeEther, rewardAmount);
+    console.log(payload);
+}
+
 export const transferTokensNoReward = async (tokenAddress, amount, toAddress) => {
     const ethAmountInWei = 0;
     const data = await prepareTokenTransferData(amount, toAddress);
     console.log("data2", data);
     const payload = await preparePayload(personalWalletAddress, publicAddress, tokenAddress, ethAmountInWei, data, rewardTypeEther, noReward);
+    console.log(payload);
+}
+
+export const transferTokensWithTokenReward = async (tokenAddress, amount, toAddress, rewardAmount) => {
+    const ethAmountInWei = 0;
+    const data = await prepareTokenTransferData(amount, toAddress);
+    console.log("data2", data);
+    const payload = await preparePayload(personalWalletAddress, publicAddress, tokenAddress, ethAmountInWei, data, tokenAddress, rewardAmount);
     console.log(payload);
 }
 
