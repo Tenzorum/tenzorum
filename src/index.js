@@ -37,10 +37,10 @@ export const preparePayload = async (targetWallet, from, to, value, data, reward
     payload.s = ethUtils.bufferToHex(signedHash.s);
     payload.from = from;
     payload.to = to;
-    payload.value = value;
+    payload.value = value.toString();
     payload.data = data;
     payload.rewardType = rewardType;
-    payload.rewardAmount = rewardAmount;
+    payload.rewardAmount = rewardAmount.toString();
 
     // console.log('"'+payload.v+'","'+payload.r+'","'+payload.s+'","'+payload.from+'","'+payload.to+'","'+
     //     payload.value+'","'+payload.data+'","'+payload.rewardType+'","'+payload.rewardAmount+'"');
