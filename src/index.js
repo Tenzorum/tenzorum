@@ -53,7 +53,7 @@ export const prepareTokenTransferData = async (amount, to) => {
             type: 'uint256',
             name: 'amount'
         }]
-    }, [amount, to]);
+    }, [to, amount]);
     return encoded;
 }
 

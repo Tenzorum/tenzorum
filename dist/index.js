@@ -57,7 +57,7 @@ var prepareTokenTransferData = exports.prepareTokenTransferData = async function
             type: 'uint256',
             name: 'amount'
         }]
-    }, [amount, to]);
+    }, [to, amount]);
     return encoded;
 };
 
