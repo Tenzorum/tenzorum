@@ -1,11 +1,13 @@
 const utils = require('web3-utils');
 const ethUtils = require('ethereumjs-util');
+const fetch = require('node-fetch');
 
 let isInitialised = false;
 
 const zeroWei = 0;
 export const noData = "0x00";
 export const rewardTypeEther = "0x0000000000000000000000000000000000000000";
+export const tsnUri = "http://tsnn.tenzorum.xyz:1888/tsnn";
 
 let web3;
 let privateKey;
@@ -18,6 +20,12 @@ export const initSdk = (_web3, _privateKey, _personalWalletAddress) => {
     privateKey = Buffer.from(_privateKey, 'hex');
     publicAddress = ethUtils.bufferToHex(ethUtils.privateToAddress(privateKey));
     isInitialised = true;
+}
+
+export const getTsn = async () => {
+    const response = await fetch(tsnUri);
+    const json = await response.json();
+    return json.tsn;
 }
 
 export const preparePayload = async (targetWallet, from, to, value, data, rewardType, rewardAmount) => {
@@ -117,6 +125,7 @@ export const addActionNoReward = async (account) => {
 
 module.exports = {
     initSdk,
+    getTsn,
     transferEtherNoReward,
     transferEtherWithEtherReward,
     transferTokensNoReward,

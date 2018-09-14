@@ -5,12 +5,14 @@ Object.defineProperty(exports, "__esModule", {
 });
 var utils = require('web3-utils');
 var ethUtils = require('ethereumjs-util');
+var fetch = require('node-fetch');
 
 var isInitialised = false;
 
 var zeroWei = 0;
 var noData = exports.noData = "0x00";
 var rewardTypeEther = exports.rewardTypeEther = "0x0000000000000000000000000000000000000000";
+var tsnUri = exports.tsnUri = "http://tsnn.tenzorum.xyz:1888/tsnn";
 
 var web3 = void 0;
 var privateKey = void 0;
@@ -23,6 +25,12 @@ var initSdk = exports.initSdk = function initSdk(_web3, _privateKey, _personalWa
     privateKey = Buffer.from(_privateKey, 'hex');
     publicAddress = ethUtils.bufferToHex(ethUtils.privateToAddress(privateKey));
     isInitialised = true;
+};
+
+var getTsn = exports.getTsn = async function getTsn() {
+    var response = await fetch(tsnUri);
+    var json = await response.json();
+    return json.tsn;
 };
 
 var preparePayload = exports.preparePayload = async function preparePayload(targetWallet, from, to, value, data, rewardType, rewardAmount) {
@@ -121,6 +129,7 @@ var addActionNoReward = exports.addActionNoReward = async function addActionNoRe
 
 module.exports = {
     initSdk: initSdk,
+    getTsn: getTsn,
     transferEtherNoReward: transferEtherNoReward,
     transferEtherWithEtherReward: transferEtherWithEtherReward,
     transferTokensNoReward: transferTokensNoReward,

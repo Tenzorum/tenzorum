@@ -1,4 +1,4 @@
-const tenzSdk = require('../dist/index.js');
+const tenzSdk = require('tenzorum');
 const Web3 = require('web3');
 
 const web3 = new Web3(new Web3.providers.HttpProvider('https://ropsten.infura.io/vCE9q890Is08T4xq5qKm'));
@@ -9,11 +9,16 @@ const privateKey = "2e5a537948b5d4dd63f690f5a82f8591cb5c41a562c9cce850adfb29a99a
 (async () => {
     //first init the SDK with your web3 instance, private key of the wallet to use and the personal wallet address
     tenzSdk.initSdk(web3, privateKey, personalWalletAddress);
+    let result;
+
+    console.log("Fetch a TSN to use");
+    result = await tenzSdk.getTsn();
+    console.log(result);
 
     console.log("Transfer ether no fee");
     const toAddress = "0xd4a0d9531Bf28C26869C526b2cAd2F2eB77D3844";
     const ethAmountInWei = 10;
-    let result = await tenzSdk.transferEtherNoReward(ethAmountInWei, toAddress);
+    result = await tenzSdk.transferEtherNoReward(ethAmountInWei, toAddress);
     console.log(result);
 
     console.log("Transfer ether with ether fee");
