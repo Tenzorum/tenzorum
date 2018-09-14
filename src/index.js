@@ -1,3 +1,8 @@
+/* Tenzorum TSNN Client SDK - https://tenzorum.org
+ *
+ * @author  Radek Ostrowski & Mark Pereira
+ */
+
 const utils = require('web3-utils');
 const ethUtils = require('ethereumjs-util');
 const fetch = require('node-fetch');
