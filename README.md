@@ -39,4 +39,4 @@ where:
 * rewardAmount - how much of ether/token should be paid as the fee
 
 
-For full working example check example.js.
+For full working example check [example.js](https://github.com/Tenzorum/tenzorum-pkg/blob/master/example.js).
