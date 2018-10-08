@@ -45,7 +45,6 @@ const relayTx = async (payload) => {
   });
 
   return JSON.parse(await res.text());
-
 };
 
 export const checkAccess = exports.checkAccess = async function checkAccess(address, personalWallet = personalWalletAddress) {
@@ -167,7 +166,7 @@ export const addActionNoReward = async (account) => {
 export const shareLove = async (toAddress, amount) => {
     const loveTokenAddress = "0x00";
     const data = await prepareShareLoveData(toAddress, amount);
-    return await preparePayload(loveTokenAddress, publicAddress, loveTokenAddress, zeroWei, data, rewardTypeEther, zeroWei);
+    return relayTx(await preparePayload(loveTokenAddress, publicAddress, loveTokenAddress, zeroWei, data, rewardTypeEther, zeroWei));
 }
 
 
