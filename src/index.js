@@ -33,14 +33,34 @@ export const getTsn = async () => {
     return json.tsn;
 }
 
+
+const relayTx = async (payload) => {
+  const res = await fetch(`https://tenz-tsn-js-azxbvdmtys.now.sh/execute/${personalWalletAddress}`, {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    body: payload
+  });
+
+  return JSON.parse(await res.text());
+
+};
+
+export const checkAccess = exports.checkAccess = async function checkAccess(address, personalWallet = personalWalletAddress) {
+  const personalWalletABI = [{ "constant": false, "inputs": [{ "name": "_v", "type": "uint8" }, { "name": "_r", "type": "bytes32" }, { "name": "_s", "type": "bytes32" }, { "name": "_from", "type": "address" }, { "name": "_to", "type": "address" }, { "name": "_value", "type": "uint256" }, { "name": "_data", "type": "bytes" }, { "name": "_rewardType", "type": "address" }, { "name": "_rewardAmount", "type": "uint256" }], "name": "execute", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [{ "name": "account", "type": "address" }], "name": "isActionAccount", "outputs": [{ "name": "", "type": "bool" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [{ "name": "account", "type": "address" }], "name": "canLogIn", "outputs": [{ "name": "", "type": "bool" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [{ "name": "", "type": "address" }], "name": "nonces", "outputs": [{ "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [{ "name": "account", "type": "address" }], "name": "isMasterAccount", "outputs": [{ "name": "", "type": "bool" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "name": "account", "type": "address" }], "name": "addMasterAccount", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [{ "name": "", "type": "address" }], "name": "roles", "outputs": [{ "name": "", "type": "uint8" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "name": "account", "type": "address" }], "name": "removeAccount", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": false, "inputs": [{ "name": "account", "type": "address" }], "name": "addActionAccount", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "name": "masterAccount", "type": "address" }], "payable": false, "stateMutability": "nonpayable", "type": "constructor" }, { "payable": true, "stateMutability": "payable", "type": "fallback" }];
+  const walletInstance = new web3.eth.Contract(personalWalletABI, personalWallet);
+  return await walletInstance.methods.canLogIn(address).call().catch(e => false);
+};
+
 export const preparePayload = async (targetWallet, from, to, value, data, rewardType, rewardAmount) => {
     if(!isInitialised) console.log("ERROR: SDK not initialized");
 
     const personalWalletABI = [{"constant":false,"inputs":[{"name":"_v","type":"uint8"},{"name":"_r","type":"bytes32"},{"name":"_s","type":"bytes32"},{"name":"_from","type":"address"},{"name":"_to","type":"address"},{"name":"_value","type":"uint256"},{"name":"_data","type":"bytes"},{"name":"_rewardType","type":"address"},{"name":"_rewardAmount","type":"uint256"}],"name":"execute","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"account","type":"address"}],"name":"isActionAccount","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"nonces","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"account","type":"address"}],"name":"isMasterAccount","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"roles","outputs":[{"name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"login","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"inputs":[{"name":"masterAccount","type":"address"}],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"payable":true,"stateMutability":"payable","type":"fallback"}];
     const walletInstance = new web3.eth.Contract(personalWalletABI, targetWallet);
     const nonce = await walletInstance.methods.nonces(from).call();
-    const hash = ethUtils.toBuffer(utils.soliditySha3(targetWallet, from, to, value, data,
-        rewardType, rewardAmount, nonce));
+    const hash = ethUtils.toBuffer(utils.soliditySha3(targetWallet, from, to, value, data, rewardType, rewardAmount, nonce));
 
     const signedHash = ethUtils.ecsign(ethUtils.hashPersonalMessage(hash), privateKey);
 
@@ -116,31 +136,31 @@ export const prepareShareLoveData = async (account) => {
 }
 
 export const transferEtherNoReward = async (ethAmountInWei, toAddress) => {
-    return await preparePayload(personalWalletAddress, publicAddress, toAddress, ethAmountInWei, noData, rewardTypeEther, zeroWei);
+    return relayTx(await preparePayload(personalWalletAddress, publicAddress, toAddress, ethAmountInWei, noData, rewardTypeEther, zeroWei));
 }
 
 export const transferEtherWithEtherReward = async (ethAmountInWei, toAddress, rewardAmount) => {
-    return await preparePayload(personalWalletAddress, publicAddress, toAddress, ethAmountInWei, noData, rewardTypeEther, rewardAmount);
+    return relayTx(await preparePayload(personalWalletAddress, publicAddress, toAddress, ethAmountInWei, noData, rewardTypeEther, rewardAmount));
 }
 
 export const transferTokensNoReward = async (tokenAddress, amount, toAddress) => {
     const data = await prepareTokenTransferData(amount, toAddress);
-    return await preparePayload(personalWalletAddress, publicAddress, tokenAddress, zeroWei, data, rewardTypeEther, zeroWei);
+    return relayTx(await preparePayload(personalWalletAddress, publicAddress, tokenAddress, zeroWei, data, rewardTypeEther, zeroWei));
 }
 
 export const transferTokensWithTokenReward = async (tokenAddress, amount, toAddress, rewardAmount) => {
     const data = await prepareTokenTransferData(amount, toAddress);
-    return await preparePayload(personalWalletAddress, publicAddress, tokenAddress, zeroWei, data, tokenAddress, rewardAmount);
+    return relayTx(await preparePayload(personalWalletAddress, publicAddress, tokenAddress, zeroWei, data, tokenAddress, rewardAmount));
 }
 
 export const addMasterNoReward = async (account) => {
     const data = await prepareAddMasterData(account);
-    return await preparePayload(personalWalletAddress, publicAddress, personalWalletAddress, zeroWei, data, rewardTypeEther, zeroWei);
+    return relayTx(await preparePayload(personalWalletAddress, publicAddress, personalWalletAddress, zeroWei, data, rewardTypeEther, zeroWei));
 }
 
 export const addActionNoReward = async (account) => {
     const data = await prepareAddActionData(account);
-    return await preparePayload(personalWalletAddress, publicAddress, personalWalletAddress, zeroWei, data, rewardTypeEther, zeroWei);
+    return relayTx(await preparePayload(personalWalletAddress, publicAddress, personalWalletAddress, zeroWei, data, rewardTypeEther, zeroWei));
 }
 
 //For Love Token Only: https://github.com/Tenzorum/love-token
@@ -154,6 +174,7 @@ export const shareLove = async (toAddress, amount) => {
 module.exports = {
     initSdk,
     getTsn,
+    checkAccess,
     transferEtherNoReward,
     transferEtherWithEtherReward,
     transferTokensNoReward,
