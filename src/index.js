@@ -45,7 +45,6 @@ const relayTx = async (payload) => {
   });
 
   return JSON.parse(await res.text());
-
 };
 
 export const checkAccess = exports.checkAccess = async function checkAccess(address, personalWallet = personalWalletAddress) {
@@ -120,6 +119,21 @@ export const prepareAddActionData = async (account) => {
     return encoded;
 }
 
+export const prepareShareLoveData = async (account) => {
+    const encoded = await web3.eth.abi.encodeFunctionCall({
+        name: 'shareLove',
+        type: 'function',
+        inputs: [{
+            type: 'address',
+            name: 'to'
+        }, {
+            type: 'uint256',
+            name: 'amount'
+        }]
+    }, [account]);
+    return encoded;
+}
+
 export const transferEtherNoReward = async (ethAmountInWei, toAddress) => {
     return relayTx(await preparePayload(personalWalletAddress, publicAddress, toAddress, ethAmountInWei, noData, rewardTypeEther, zeroWei));
 }
@@ -148,6 +162,14 @@ export const addActionNoReward = async (account) => {
     return relayTx(await preparePayload(personalWalletAddress, publicAddress, personalWalletAddress, zeroWei, data, rewardTypeEther, zeroWei));
 }
 
+//For Love Token Only: https://github.com/Tenzorum/love-token
+export const shareLove = async (toAddress, amount) => {
+    const loveTokenAddress = "0x00";
+    const data = await prepareShareLoveData(toAddress, amount);
+    return relayTx(await preparePayload(loveTokenAddress, publicAddress, loveTokenAddress, zeroWei, data, rewardTypeEther, zeroWei));
+}
+
+
 module.exports = {
     initSdk,
     getTsn,
@@ -157,5 +179,6 @@ module.exports = {
     transferTokensNoReward,
     transferTokensWithTokenReward,
     addMasterNoReward,
-    addActionNoReward
+    addActionNoReward,
+    shareLove
 }
