@@ -39,11 +39,20 @@ Utility for signing transactions and interaction with TSNN.
 ```bash
 npm i tenzorum --save
 ```
+
 ```javascript
 const tenzSdk = require('tenzorum');
 tenzSdk.initSdk(web3, privateKey, personalWalletAddress);
 const result = await tenzSdk.transferTokensWithTokenReward(tokenAddress, tenTokens, toAddress, oneToken);
 console.log(result);
+```
+```ES6
+ES6
+import {initSdk, transferTokensWithTokenReward} from 'tenzorum';
+const result = await transferTokensWithTokenReward(tokenAddress, tenTokens, toAddress, oneToken);
+console.log(result);
+
+
 ```
 
 This will print out a message in the following format as expected in the body of POST 
