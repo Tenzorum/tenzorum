@@ -46,7 +46,7 @@ console.log(result);
 This will print out a message in the following format as expected in the body of POST 
 request by TSNN:
 
-```json
+```js
 {
   "v":"0x1b",
   "r":"0x2a061c04485a307802d76f3e4c7fda40ec4d3390df3c6df28fd6c3165ca1fb59",
