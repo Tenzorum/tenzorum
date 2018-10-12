@@ -37,7 +37,7 @@ Users must have an environment capable of running web3@1.0.0
 Utility for signing transactions and interaction with TSNN.
 
 ```bash
-npm i tenzorum
+npm i tenzorum --save
 ```
 ```javascript
 const tenzSdk = require('tenzorum');
