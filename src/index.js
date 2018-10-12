@@ -14,6 +14,11 @@ export const noData = "0x00";
 export const rewardTypeEther = "0x0000000000000000000000000000000000000000";
 export const tsnUri = "http://tsnn.tenzorum.xyz:1888/tsnn";
 
+//mainnet
+export const loveTokenAddress = "0x00";
+//ropsten
+//export const loveTokenAddress = "0x00";
+
 let web3;
 let privateKey;
 let publicAddress;
@@ -134,6 +139,30 @@ export const prepareShareLoveData = async (account) => {
     return encoded;
 }
 
+export const prepareCreateTenzIdData = async (subdomain, domain, topdomain, owner, target) => {
+    const encoded = await web3.eth.abi.encodeFunctionCall({
+        name: 'newSubdomain',
+        type: 'function',
+        inputs: [{
+            type: 'string',
+            name: '_subdomain'
+        }, {
+            type: 'string',
+            name: '_domain'
+        }, {
+            type: 'string',
+            name: '_topdomain'
+        }, {
+            type: 'address',
+            name: '_owner'
+        }, {
+            type: 'address',
+            name: '_target'
+        }]
+    }, [subdomain, domain, topdomain, owner, target]);
+    return encoded;
+}
+
 export const transferEtherNoReward = async (ethAmountInWei, toAddress) => {
     return relayTx(await preparePayload(personalWalletAddress, publicAddress, toAddress, ethAmountInWei, noData, rewardTypeEther, zeroWei));
 }
@@ -164,11 +193,15 @@ export const addActionNoReward = async (account) => {
 
 //For Love Token Only: https://github.com/Tenzorum/love-token
 export const shareLove = async (toAddress, amount) => {
-    const loveTokenAddress = "0x00";
     const data = await prepareShareLoveData(toAddress, amount);
     return relayTx(await preparePayload(loveTokenAddress, publicAddress, loveTokenAddress, zeroWei, data, rewardTypeEther, zeroWei));
 }
 
+//Using Love Token contract to create tenz-id as a meta-tx
+export const createTenzId = async (subdomain, owner, target) => {
+    const data = await prepareCreateTenzIdData(subdomain, "tenz-id", "xyz", owner, target);
+    return relayTx(await preparePayload(loveTokenAddress, publicAddress, loveTokenAddress, zeroWei, data, rewardTypeEther, zeroWei));
+}
 
 module.exports = {
     initSdk,
@@ -180,5 +213,6 @@ module.exports = {
     transferTokensWithTokenReward,
     addMasterNoReward,
     addActionNoReward,
-    shareLove
+    shareLove,
+    createTenzId
 }
