@@ -38,6 +38,19 @@ var getTsn = exports.getTsn = async function getTsn() {
     return json.tsn;
 };
 
+var relayTx = async function relayTx(payload) {
+    var res = await fetch('https://tenz-tsn-js-azxbvdmtys.now.sh/execute/' + personalWalletAddress, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: payload
+    });
+
+    return JSON.parse((await res.text()));
+};
+
 var checkAccess = exports.checkAccess = exports.checkAccess = async function checkAccess(address) {
     var personalWallet = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : personalWalletAddress;
 
@@ -115,36 +128,37 @@ var prepareAddActionData = exports.prepareAddActionData = async function prepare
 };
 
 var transferEtherNoReward = exports.transferEtherNoReward = async function transferEtherNoReward(ethAmountInWei, toAddress) {
-    return await preparePayload(personalWalletAddress, publicAddress, toAddress, ethAmountInWei, noData, rewardTypeEther, zeroWei);
+    return relayTx((await preparePayload(personalWalletAddress, publicAddress, toAddress, ethAmountInWei, noData, rewardTypeEther, zeroWei)));
 };
 
 var transferEtherWithEtherReward = exports.transferEtherWithEtherReward = async function transferEtherWithEtherReward(ethAmountInWei, toAddress, rewardAmount) {
-    return await preparePayload(personalWalletAddress, publicAddress, toAddress, ethAmountInWei, noData, rewardTypeEther, rewardAmount);
+    return relayTx((await preparePayload(personalWalletAddress, publicAddress, toAddress, ethAmountInWei, noData, rewardTypeEther, rewardAmount)));
 };
 
 var transferTokensNoReward = exports.transferTokensNoReward = async function transferTokensNoReward(tokenAddress, amount, toAddress) {
     var data = await prepareTokenTransferData(amount, toAddress);
-    return await preparePayload(personalWalletAddress, publicAddress, tokenAddress, zeroWei, data, rewardTypeEther, zeroWei);
+    return relayTx((await preparePayload(personalWalletAddress, publicAddress, tokenAddress, zeroWei, data, rewardTypeEther, zeroWei)));
 };
 
 var transferTokensWithTokenReward = exports.transferTokensWithTokenReward = async function transferTokensWithTokenReward(tokenAddress, amount, toAddress, rewardAmount) {
     var data = await prepareTokenTransferData(amount, toAddress);
-    return await preparePayload(personalWalletAddress, publicAddress, tokenAddress, zeroWei, data, tokenAddress, rewardAmount);
+    return relayTx((await preparePayload(personalWalletAddress, publicAddress, tokenAddress, zeroWei, data, tokenAddress, rewardAmount)));
 };
 
 var addMasterNoReward = exports.addMasterNoReward = async function addMasterNoReward(account) {
     var data = await prepareAddMasterData(account);
-    return await preparePayload(personalWalletAddress, publicAddress, personalWalletAddress, zeroWei, data, rewardTypeEther, zeroWei);
+    return relayTx((await preparePayload(personalWalletAddress, publicAddress, personalWalletAddress, zeroWei, data, rewardTypeEther, zeroWei)));
 };
 
 var addActionNoReward = exports.addActionNoReward = async function addActionNoReward(account) {
     var data = await prepareAddActionData(account);
-    return await preparePayload(personalWalletAddress, publicAddress, personalWalletAddress, zeroWei, data, rewardTypeEther, zeroWei);
+    return relayTx((await preparePayload(personalWalletAddress, publicAddress, personalWalletAddress, zeroWei, data, rewardTypeEther, zeroWei)));
 };
 
 module.exports = {
     initSdk: initSdk,
     getTsn: getTsn,
+    checkAccess: checkAccess,
     transferEtherNoReward: transferEtherNoReward,
     transferEtherWithEtherReward: transferEtherWithEtherReward,
     transferTokensNoReward: transferTokensNoReward,

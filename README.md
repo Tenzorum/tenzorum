@@ -1,10 +1,42 @@
+<p align="center">
+  <a href="https://tenzorum.org/">
+    <img alt="tenzorum" src="https://tenzorum.org/wp-content/uploads/2018/09/logo_tenz-e1537146360637.png" width="144">
+  </a>
+</p>
+
+<h3 align="center">
+  Tenzorum
+</h3>
+
+<p align="center">
+  Easy to use SDK for implementing gasless transactions
+</p>
+
+<p align="center">
+  <a href="https://www.npmjs.com/package/tenzorum"><img src="https://img.shields.io/npm/v/tenzorum.svg?style=flat-square"></a>
+  <a href="https://www.npmjs.com/package/tenzorum"><img src="https://img.shields.io/npm/dm/tenzorum.svg?style=flat-square"></a>
+</p>
+
+[![npm Version](https://img.shields.io/npm/v/enzyme.svg)](https://www.npmjs.com/package/enzyme) [![License](https://img.shields.io/npm/l/enzyme.svg)](https://www.npmjs.com/package/enzyme) [![Build Status](https://travis-ci.org/airbnb/enzyme.svg)](https://travis-ci.org/airbnb/enzyme) [![Coverage Status](https://coveralls.io/repos/airbnb/enzyme/badge.svg?branch=master&service=github)](https://coveralls.io/github/airbnb/enzyme?branch=master)
+
+
+## Dependencies
+
+Users must have an environment capable of running web3@1.0.0
+| Package                                                | Version                                                                                                                             | Docs                                                                                                                                                                                                                                                                          | Description                                                                        |
+| ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| [`web3`](/packages/web3)               | [![npm](https://img.shields.io/npm/v/web3.svg?style=flat-square)](https://www.npmjs.com/package/web3)               | [![](https://img.shields.io/badge/API%20Docs-site-green.svg?style=flat-square)](https://web3js.readthedocs.io/en/1.0/getting-started.html) [![](https://img.shields.io/badge/API%20Docs-markdown-lightgrey.svg?style=flat-square)](/packages/web3/docs)          | The core of web3                                                          |
+
+
 # Tenzorum TSNN SDK
+## About
 
 Utility for signing transactions and interaction with TSNN.
 
-```
+```bash
 npm i tenzorum
-...
+```
+```javascript
 const tenzSdk = require('tenzorum');
 tenzSdk.initSdk(web3, privateKey, personalWalletAddress);
 const result = await tenzSdk.transferTokensWithTokenReward(tokenAddress, tenTokens, toAddress, oneToken);
@@ -14,7 +46,7 @@ console.log(result);
 This will print out a message in the following format as expected in the body of POST 
 request by TSNN:
 
-```
+```javascript
 {
   "v":"0x1b",
   "r":"0x2a061c04485a307802d76f3e4c7fda40ec4d3390df3c6df28fd6c3165ca1fb59",
