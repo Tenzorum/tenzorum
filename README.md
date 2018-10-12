@@ -17,7 +17,9 @@
   <a href="https://www.npmjs.com/package/tenzorum"><img src="https://img.shields.io/npm/dm/tenzorum.svg?style=flat-square"></a>
 </p>
 
-[![npm Version](https://img.shields.io/npm/v/enzyme.svg)](https://www.npmjs.com/package/enzyme) [![License](https://img.shields.io/npm/l/enzyme.svg)](https://www.npmjs.com/package/enzyme) [![Build Status](https://travis-ci.org/airbnb/enzyme.svg)](https://travis-ci.org/airbnb/enzyme) [![Coverage Status](https://coveralls.io/repos/airbnb/enzyme/badge.svg?branch=master&service=github)](https://coveralls.io/github/airbnb/enzyme?branch=master)
+[![npm Version](https://img.shields.io/npm/v/tenzorum.svg)](https://www.npmjs.com/package/tenzorum)
+[![License](https://img.shields.io/npm/l/tenzorum.svg)](https://www.npmjs.com/package/tenzorum)
+[![Build Status](https://travis-ci.org/airbnb/enzyme.svg)](https://travis-ci.org/airbnb/enzyme)
 
 
 ## Dependencies
