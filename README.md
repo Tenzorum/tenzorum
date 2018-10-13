@@ -11,15 +11,12 @@
 <p align="center">
   Easy to use SDK for implementing gasless transactions
 </p>
-
-<p align="center">
-  <a href="https://www.npmjs.com/package/tenzorum"><img src="https://img.shields.io/npm/v/tenzorum.svg?style=flat-square"></a>
-  <a href="https://www.npmjs.com/package/tenzorum"><img src="https://img.shields.io/npm/dm/tenzorum.svg?style=flat-square"></a>
-</p>
-
-[![npm Version](https://img.shields.io/npm/v/tenzorum.svg)](https://www.npmjs.com/package/tenzorum)
-[![License](https://img.shields.io/npm/l/tenzorum.svg)](https://www.npmjs.com/package/tenzorum)
-[![Build Status](https://travis-ci.org/airbnb/enzyme.svg)](https://travis-ci.org/airbnb/enzyme)
+<center>
+    [![npm Version](https://img.shields.io/npm/v/tenzorum.svg)](https://www.npmjs.com/package/tenzorum)
+    [![License](https://img.shields.io/npm/l/tenzorum.svg)](https://www.npmjs.com/package/tenzorum)
+    [![Downloads](https://img.shields.io/npm/l/tenzorum.svg)](https://www.npmjs.com/package/tenzorum)
+    [![Build Status](https://travis-ci.org/airbnb/enzyme.svg)](https://travis-ci.org/airbnb/enzyme)
+</center>
 
 
 ## Dependencies
@@ -40,20 +37,39 @@ Utility for signing transactions and interaction with TSNN.
 npm i tenzorum --save
 ```
 
-```javascript
+
+
+## 👩‍🚀 User
+To onboard a user to be able to user gasless transactions their app must have 2 components.
+
+1. Access to a private key (ideally from a secure enclave)
+```js
+const privateKey = "d51729c3b597d162d7be8f83c8ee4eb137db72e7e0828d7709a1a5b274afe017";
+```
+2. Deployed a Personal Multisignature Wallet
+```js
+import {deployPersonalMultisig} from tenzSdk;
+const personalMultisigWallet = deployPersonalMultisig(<publicKey from privateKey>)
+
+```
+You can then initialise the SDK
+```js
 const tenzSdk = require('tenzorum');
 tenzSdk.initSdk(web3, privateKey, personalWalletAddress);
+```
+```ES6
+/*ES6*/
+import {initSdk, transferTokensWithTokenReward} from 'tenzorum';
+initSdk(web3, privateKey, personalWalletAddress);
+```
+The user's wallet can then access transferring tokens via gasless transactions easily
+with the following function calls.
+
+```javascript
 const result = await tenzSdk.transferTokensWithTokenReward(tokenAddress, tenTokens, toAddress, oneToken);
 console.log(result);
 ```
-```ES6
-ES6
-import {initSdk, transferTokensWithTokenReward} from 'tenzorum';
-const result = await transferTokensWithTokenReward(tokenAddress, tenTokens, toAddress, oneToken);
-console.log(result);
 
-
-```
 
 This will print out a message in the following format as expected in the body of POST 
 request by TSNN:

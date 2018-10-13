@@ -19,6 +19,10 @@ let privateKey;
 let publicAddress;
 let personalWalletAddress;
 
+class TenzorumSDK {
+
+}
+
 export const initSdk = (_web3, _privateKey, _personalWalletAddress) => {
     web3 = _web3;
     personalWalletAddress = _personalWalletAddress;
