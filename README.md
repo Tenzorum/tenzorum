@@ -31,29 +31,35 @@ Users must have an environment capable of running web3@1.0.0
 
 
 # Tenzorum TSNN SDK
-## About
-
 Utility for signing transactions and interaction with TSNN.
 
+## Installation
 ```bash
 npm i tenzorum --save
 ```
 
-
-
-## 👩‍🚀 User
-To onboard a user to be able to user gasless transactions their app must have 2 components.
+## About
+To onboard a user to be able to use gasless transactions the user's app must have 2 components.
 
 1. Access to a private key (ideally from a secure enclave)
 ```js
 const privateKey = "d51729c3b597d162d7be8f83c8ee4eb137db72e7e0828d7709a1a5b274afe017";
 ```
-2. Deployed a Personal Multisignature Wallet
+2. Deployed a Personal Multisignature Wallet for the user
 ```js
 import {deployPersonalMultisig} from tenzSdk;
-const personalMultisigWallet = deployPersonalMultisig(<publicKey from privateKey>)
-
+const personalMultisigWallet = await deployPersonalMultisig(<publicKey from privateKey>)
 ```
+returns <ContractAddress>[0xf8894138aa4d7b54b7d49afa9d5600cdb5178721](https://ropsten.etherscan.io/address/0xf8894138aa4d7b54b7d49afa9d5600cdb5178721#readContract)
+
+### 👩‍🚀 User
+For better UX it's recommended to deploy a ens username which resolves to the user's personal multisig wallet.
+This can be done all at once using the ```deployUserAccount``` method.
+```js
+import {deployUserAccount} from 'tenzorum';
+deployUserAccount('user.ens-name.eth', "0xf8894138aa4d7b54b7d49afa9d5600cdb5178721");
+```
+
 You can then initialise the SDK
 ```js
 const tenzSdk = require('tenzorum');
@@ -64,10 +70,12 @@ tenzSdk.initSdk(web3, privateKey, personalWalletAddress);
 import {initSdk, transferTokensWithTokenReward} from 'tenzorum';
 initSdk(web3, privateKey, personalWalletAddress);
 ```
+
+### ⛽️ Gasless Transactions
 The user's wallet can then access transferring tokens via gasless transactions easily
 with the following function calls.
 
-```javascript
+```js
 const result = await tenzSdk.transferTokensWithTokenReward(tokenAddress, tenTokens, toAddress, oneToken);
 console.log(result);
 ```
