@@ -19,6 +19,7 @@ var noData = exports.noData = "0x00";
 var rewardTypeEther = exports.rewardTypeEther = "0x0000000000000000000000000000000000000000";
 var tsnUri = exports.tsnUri = "http://tsnn.tenzorum.xyz:1888/tsnn";
 var personalWalletABI = exports.personalWalletABI = [{ "constant": false, "inputs": [{ "name": "_v", "type": "uint8" }, { "name": "_r", "type": "bytes32" }, { "name": "_s", "type": "bytes32" }, { "name": "_from", "type": "address" }, { "name": "_to", "type": "address" }, { "name": "_value", "type": "uint256" }, { "name": "_data", "type": "bytes" }, { "name": "_rewardType", "type": "address" }, { "name": "_rewardAmount", "type": "uint256" }], "name": "execute", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [{ "name": "account", "type": "address" }], "name": "isActionAccount", "outputs": [{ "name": "", "type": "bool" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [{ "name": "account", "type": "address" }], "name": "canLogIn", "outputs": [{ "name": "", "type": "bool" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [{ "name": "", "type": "address" }], "name": "nonces", "outputs": [{ "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [{ "name": "account", "type": "address" }], "name": "isMasterAccount", "outputs": [{ "name": "", "type": "bool" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "name": "account", "type": "address" }], "name": "addMasterAccount", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [{ "name": "", "type": "address" }], "name": "roles", "outputs": [{ "name": "", "type": "uint8" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "name": "account", "type": "address" }], "name": "removeAccount", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": false, "inputs": [{ "name": "account", "type": "address" }], "name": "addActionAccount", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "name": "masterAccount", "type": "address" }], "payable": false, "stateMutability": "nonpayable", "type": "constructor" }, { "payable": true, "stateMutability": "payable", "type": "fallback" }];
+var noncesABI = exports.noncesABI = [{ "constant": true, "inputs": [{ "name": "", "type": "address" }], "name": "nonces", "outputs": [{ "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }];
 
 //mainnet
 //export const loveTokenAddress = "0x00";
@@ -77,8 +78,8 @@ var checkAccess = exports.checkAccess = exports.checkAccess = async function che
 var preparePayload = exports.preparePayload = async function preparePayload(targetWallet, from, to, value, data, rewardType, rewardAmount) {
     if (!isInitialised) console.log("ERROR: SDK not initialized");
 
-    var walletInstance = new web3.eth.Contract(personalWalletABI, targetWallet);
-    var nonce = await walletInstance.methods.nonces(from).call();
+    var noncesInstance = new web3.eth.Contract(noncesABI, targetWallet);
+    var nonce = await noncesInstance.methods.nonces(from).call();
     var hash = ethUtils.toBuffer(utils.soliditySha3(targetWallet, from, to, value, data, rewardType, rewardAmount, nonce));
 
     var signedHash = ethUtils.ecsign(ethUtils.hashPersonalMessage(hash), privateKey);
