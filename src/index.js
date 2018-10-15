@@ -11,7 +11,11 @@
  * @var personalWalletAddress - the address of your Tenzorum Personal Wallet Address
  * @var isInitialised - variable stating whether or not the SDK is initialised
  *
-*/
+**/
+
+const Web3 = require('web3');
+let web3 = new Web3();
+web3.setProvider(new web3.providers.HttpProvider('https://ropsten.infura.io/rqmgop6P5BDFqz6yfGla'));
 
 const tnsAbi = [{"anonymous":false,"inputs":[],"name":"DomainTransfersLocked","type":"event"},{"constant":false,"inputs":[],"name":"lockDomainOwnershipTransfers","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_subdomain","type":"string"},{"name":"_domain","type":"string"},{"name":"_topdomain","type":"string"},{"name":"_owner","type":"address"},{"name":"_target","type":"address"}],"name":"newSubdomain","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"anonymous":false,"inputs":[{"indexed":true,"name":"previousRegistry","type":"address"},{"indexed":true,"name":"newRegistry","type":"address"}],"name":"RegistryUpdated","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"previousOwner","type":"address"},{"indexed":true,"name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"creator","type":"address"},{"indexed":true,"name":"owner","type":"address"},{"indexed":false,"name":"subdomain","type":"string"},{"indexed":false,"name":"domain","type":"string"},{"indexed":false,"name":"topdomain","type":"string"}],"name":"SubdomainCreated","type":"event"},{"constant":false,"inputs":[{"name":"_owner","type":"address"}],"name":"transferContractOwnership","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"anonymous":false,"inputs":[{"indexed":true,"name":"previousResolver","type":"address"},{"indexed":true,"name":"newResolver","type":"address"}],"name":"ResolverUpdated","type":"event"},{"constant":false,"inputs":[{"name":"_node","type":"bytes32"},{"name":"_owner","type":"address"}],"name":"transferDomainOwnership","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_registry","type":"address"}],"name":"updateRegistry","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_resolver","type":"address"}],"name":"updateResolver","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"inputs":[{"name":"_registry","type":"address"},{"name":"_resolver","type":"address"}],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"constant":true,"inputs":[{"name":"_domain","type":"string"},{"name":"_topdomain","type":"string"}],"name":"domainOwner","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"locked","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"owner","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"registry","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"resolver","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"_subdomain","type":"string"},{"name":"_domain","type":"string"},{"name":"_topdomain","type":"string"}],"name":"subdomainOwner","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"_subdomain","type":"string"},{"name":"_domain","type":"string"},{"name":"_topdomain","type":"string"}],"name":"subdomainTarget","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"}];
 const emptyAddress = '0x0000000000000000000000000000000000000000';
@@ -29,7 +33,6 @@ export const noData = "0x00";
 export const rewardTypeEther = "0x0000000000000000000000000000000000000000";
 export const tsnUri = "http://tsnn.tenzorum.xyz:1888/tsnn";
 
-let web3;
 let privateKey;
 let publicAddress;
 let personalWalletAddress;
@@ -40,15 +43,17 @@ let personalWalletAddress;
  * @param  {Web3Module}  _web3
  * @param  {String}     _privateKey
  * @param  {String}    _personalWalletAddress
+ * @param  {String}    _network
  */
-const initSdk = (_web3, _privateKey, _personalWalletAddress, _network) => {
+const initSdk = (_web3 = web3, _privateKey, _personalWalletAddress, _network) => {
   web3 = _web3;
   personalWalletAddress = _personalWalletAddress;
   privateKey = Buffer.from(_privateKey, 'hex');
   publicAddress = ethUtils.bufferToHex(ethUtils.privateToAddress(privateKey));
   isInitialised = true;
   //TODO: network feature for development usecases
-  //if (_network)
+  if (_network)
+      console.log(_network);
   //  _network === "ropsten"
   //    contractAddress changes per network
 };
@@ -118,8 +123,7 @@ class GaslessTransactions {
     return await walletInstance.methods.canLogIn(address).call().catch(e => false);
   };
 
-}
-
+};
 
 const preparePayload = async (targetWallet, from, to, value, data, rewardType, rewardAmount) => {
     if(!isInitialised) console.log("ERROR: SDK not initialized");
@@ -216,13 +220,15 @@ const addActionNoReward = async (account) => {
 }
 
 module.exports = {
-    initSdk,
-    getTsn,
+    addActionNoReward,
+    addMasterNoReward,
     checkAccess,
+    checkEns,
+    getTsn,
+    initSdk,
+    GaslessTransactions,
     transferEtherNoReward,
     transferEtherWithEtherReward,
     transferTokensNoReward,
-    transferTokensWithTokenReward,
-    addMasterNoReward,
-    addActionNoReward
+    transferTokensWithTokenReward
 }
