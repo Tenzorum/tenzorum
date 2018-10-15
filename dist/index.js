@@ -131,7 +131,7 @@ var prepareAddActionData = exports.prepareAddActionData = async function prepare
     return encoded;
 };
 
-var prepareShareLoveData = exports.prepareShareLoveData = async function prepareShareLoveData(account) {
+var prepareShareLoveData = exports.prepareShareLoveData = async function prepareShareLoveData(to, amount) {
     var encoded = await web3.eth.abi.encodeFunctionCall({
         name: 'shareLove',
         type: 'function',
@@ -142,7 +142,7 @@ var prepareShareLoveData = exports.prepareShareLoveData = async function prepare
             type: 'uint256',
             name: 'amount'
         }]
-    }, [account]);
+    }, [to, amount]);
     return encoded;
 };
 

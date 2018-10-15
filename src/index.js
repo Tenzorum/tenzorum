@@ -123,7 +123,7 @@ export const prepareAddActionData = async (account) => {
     return encoded;
 }
 
-export const prepareShareLoveData = async (account) => {
+export const prepareShareLoveData = async (to, amount) => {
     const encoded = await web3.eth.abi.encodeFunctionCall({
         name: 'shareLove',
         type: 'function',
@@ -134,7 +134,7 @@ export const prepareShareLoveData = async (account) => {
             type: 'uint256',
             name: 'amount'
         }]
-    }, [account]);
+    }, [to, amount]);
     return encoded;
 }
 
