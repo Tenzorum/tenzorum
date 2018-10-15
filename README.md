@@ -16,7 +16,7 @@
 
 [![npm Version](https://img.shields.io/npm/v/tenzorum.svg)](https://www.npmjs.com/package/tenzorum)
 [![License](https://img.shields.io/npm/l/tenzorum.svg)](https://www.npmjs.com/package/tenzorum)
-[![Downloads](https://img.shields.io/github/downloads/Tenzorum/tenzorum/total.svg)](https://www.npmjs.com/package/tenzorum)
+[![Downloads](https://img.shields.io/npm/dt/tenzorum.svg)](https://www.npmjs.com/package/tenzorum)
 [![Build Status](https://travis-ci.org/airbnb/enzyme.svg)](https://travis-ci.org/airbnb/enzyme)
 
 </center>
