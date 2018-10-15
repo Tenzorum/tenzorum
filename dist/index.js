@@ -51,7 +51,9 @@ var getTsn = exports.getTsn = async function getTsn() {
 };
 
 var relayTx = async function relayTx(payload) {
-    var res = await fetch('https://tenz-tsn-js-azxbvdmtys.now.sh/execute/' + personalWalletAddress, {
+    var target = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : personalWalletAddress;
+
+    var res = await fetch('https://tenzorum-service-node-kviqczukax.now.sh/execute/' + target, {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
@@ -93,7 +95,7 @@ var preparePayload = exports.preparePayload = async function preparePayload(targ
     payload.rewardAmount = rewardAmount.toString();
 
     if (isDebug) {
-        console.log('"' + payload.v + '","' + payload.r + '","' + payload.s + '","' + payload.from + '","' + payload.to + '","' + payload.value + '","' + payload.data + '","' + payload.rewardType + '","' + payload.rewardAmount + '"');
+        console.log(JSON.stringify(payload));
     }
 
     return JSON.stringify(payload);
@@ -138,18 +140,21 @@ var prepareAddActionData = exports.prepareAddActionData = async function prepare
     return encoded;
 };
 
-var prepareShareLoveData = exports.prepareShareLoveData = async function prepareShareLoveData(to, amount) {
+var prepareShareLoveData = exports.prepareShareLoveData = async function prepareShareLoveData(from, to, amount) {
     var encoded = await web3.eth.abi.encodeFunctionCall({
         name: 'shareLove',
         type: 'function',
         inputs: [{
+            type: 'address',
+            name: 'from'
+        }, {
             type: 'address',
             name: 'to'
         }, {
             type: 'uint256',
             name: 'amount'
         }]
-    }, [to, amount]);
+    }, [from, to, amount]);
     return encoded;
 };
 
@@ -207,14 +212,14 @@ var addActionNoReward = exports.addActionNoReward = async function addActionNoRe
 
 //For Love Token Only: https://github.com/Tenzorum/love-token
 var shareLove = exports.shareLove = async function shareLove(toAddress, amount) {
-    var data = await prepareShareLoveData(toAddress, amount);
-    return relayTx((await preparePayload(loveTokenAddress, publicAddress, loveTokenAddress, zeroWei, data, rewardTypeEther, zeroWei)));
+    var data = await prepareShareLoveData(publicAddress, toAddress, amount);
+    return relayTx((await preparePayload(loveTokenAddress, publicAddress, loveTokenAddress, zeroWei, data, rewardTypeEther, zeroWei)), loveTokenAddress);
 };
 
 //Using Love Token contract to create tenz-id as a meta-tx
 var createTenzId = exports.createTenzId = async function createTenzId(subdomain, owner, target) {
     var data = await prepareCreateSubdomainData(subdomain, "tenz-id", "xyz", owner, target);
-    return relayTx((await preparePayload(loveTokenAddress, publicAddress, loveTokenAddress, zeroWei, data, rewardTypeEther, zeroWei)));
+    return relayTx((await preparePayload(loveTokenAddress, publicAddress, loveTokenAddress, zeroWei, data, rewardTypeEther, zeroWei)), loveTokenAddress);
 };
 
 module.exports = {

@@ -45,9 +45,8 @@ export const getTsn = async () => {
     return json.tsn;
 }
 
-
-const relayTx = async (payload) => {
-  const res = await fetch(`https://tenz-tsn-js-azxbvdmtys.now.sh/execute/${personalWalletAddress}`, {
+const relayTx = async (payload, target=personalWalletAddress) => {
+  const res = await fetch(`https://tenzorum-service-node-kviqczukax.now.sh/execute/${target}`, {
     method: 'POST',
     headers: {
       'Accept': 'application/json',
@@ -84,9 +83,9 @@ export const preparePayload = async (targetWallet, from, to, value, data, reward
     payload.rewardType = rewardType;
     payload.rewardAmount = rewardAmount.toString();
 
+
     if(isDebug) {
-        console.log('"'+payload.v+'","'+payload.r+'","'+payload.s+'","'+payload.from+'","'+payload.to+'","'+
-            payload.value+'","'+payload.data+'","'+payload.rewardType+'","'+payload.rewardAmount+'"');
+        console.log(JSON.stringify(payload));
     }
 
     return JSON.stringify(payload);
@@ -131,18 +130,21 @@ export const prepareAddActionData = async (account) => {
     return encoded;
 }
 
-export const prepareShareLoveData = async (to, amount) => {
+export const prepareShareLoveData = async (from, to, amount) => {
     const encoded = await web3.eth.abi.encodeFunctionCall({
         name: 'shareLove',
         type: 'function',
         inputs: [{
+            type: 'address',
+            name: 'from'
+        }, {
             type: 'address',
             name: 'to'
         }, {
             type: 'uint256',
             name: 'amount'
         }]
-    }, [to, amount]);
+    }, [from, to, amount]);
     return encoded;
 }
 
@@ -200,14 +202,14 @@ export const addActionNoReward = async (account) => {
 
 //For Love Token Only: https://github.com/Tenzorum/love-token
 export const shareLove = async (toAddress, amount) => {
-    const data = await prepareShareLoveData(toAddress, amount);
-    return relayTx(await preparePayload(loveTokenAddress, publicAddress, loveTokenAddress, zeroWei, data, rewardTypeEther, zeroWei));
+    const data = await prepareShareLoveData(publicAddress, toAddress, amount);
+    return relayTx(await preparePayload(loveTokenAddress, publicAddress, loveTokenAddress, zeroWei, data, rewardTypeEther, zeroWei), loveTokenAddress);
 }
 
 //Using Love Token contract to create tenz-id as a meta-tx
 export const createTenzId = async (subdomain, owner, target) => {
     const data = await prepareCreateSubdomainData(subdomain, "tenz-id", "xyz", owner, target);
-    return relayTx(await preparePayload(loveTokenAddress, publicAddress, loveTokenAddress, zeroWei, data, rewardTypeEther, zeroWei));
+    return relayTx(await preparePayload(loveTokenAddress, publicAddress, loveTokenAddress, zeroWei, data, rewardTypeEther, zeroWei), loveTokenAddress);
 }
 
 module.exports = {
