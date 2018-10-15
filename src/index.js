@@ -25,12 +25,18 @@ let privateKey;
 let publicAddress;
 let personalWalletAddress;
 
+let isDebug;
+
 export const initSdk = (_web3, _privateKey, _personalWalletAddress) => {
     web3 = _web3;
     personalWalletAddress = _personalWalletAddress;
     privateKey = Buffer.from(_privateKey, 'hex');
     publicAddress = ethUtils.bufferToHex(ethUtils.privateToAddress(privateKey));
     isInitialised = true;
+}
+
+export const setDebugMode = () => {
+    isDebug = true;
 }
 
 export const getTsn = async () => {
@@ -78,8 +84,10 @@ export const preparePayload = async (targetWallet, from, to, value, data, reward
     payload.rewardType = rewardType;
     payload.rewardAmount = rewardAmount.toString();
 
-    // console.log('"'+payload.v+'","'+payload.r+'","'+payload.s+'","'+payload.from+'","'+payload.to+'","'+
-    //     payload.value+'","'+payload.data+'","'+payload.rewardType+'","'+payload.rewardAmount+'"');
+    if(isDebug) {
+        console.log('"'+payload.v+'","'+payload.r+'","'+payload.s+'","'+payload.from+'","'+payload.to+'","'+
+            payload.value+'","'+payload.data+'","'+payload.rewardType+'","'+payload.rewardAmount+'"');
+    }
 
     return JSON.stringify(payload);
 }
@@ -213,5 +221,6 @@ module.exports = {
     addMasterNoReward,
     addActionNoReward,
     shareLove,
-    createTenzId
+    createTenzId,
+    setDebugMode
 }

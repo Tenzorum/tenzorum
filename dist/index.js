@@ -30,12 +30,18 @@ var privateKey = void 0;
 var publicAddress = void 0;
 var personalWalletAddress = void 0;
 
+var isDebug = void 0;
+
 var initSdk = exports.initSdk = function initSdk(_web3, _privateKey, _personalWalletAddress) {
     web3 = _web3;
     personalWalletAddress = _personalWalletAddress;
     privateKey = Buffer.from(_privateKey, 'hex');
     publicAddress = ethUtils.bufferToHex(ethUtils.privateToAddress(privateKey));
     isInitialised = true;
+};
+
+var setDebugMode = exports.setDebugMode = function setDebugMode() {
+    isDebug = true;
 };
 
 var getTsn = exports.getTsn = async function getTsn() {
@@ -86,8 +92,9 @@ var preparePayload = exports.preparePayload = async function preparePayload(targ
     payload.rewardType = rewardType;
     payload.rewardAmount = rewardAmount.toString();
 
-    // console.log('"'+payload.v+'","'+payload.r+'","'+payload.s+'","'+payload.from+'","'+payload.to+'","'+
-    //     payload.value+'","'+payload.data+'","'+payload.rewardType+'","'+payload.rewardAmount+'"');
+    if (isDebug) {
+        console.log('"' + payload.v + '","' + payload.r + '","' + payload.s + '","' + payload.from + '","' + payload.to + '","' + payload.value + '","' + payload.data + '","' + payload.rewardType + '","' + payload.rewardAmount + '"');
+    }
 
     return JSON.stringify(payload);
 };
@@ -221,5 +228,6 @@ module.exports = {
     addMasterNoReward: addMasterNoReward,
     addActionNoReward: addActionNoReward,
     shareLove: shareLove,
-    createTenzId: createTenzId
+    createTenzId: createTenzId,
+    setDebugMode: setDebugMode
 };

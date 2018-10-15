@@ -1,6 +1,6 @@
 {
   "name": "tenzorum",
-  "version": "0.0.89",
+  "version": "0.0.90",
   "description": "Javascript module to connect to Tenzorum's Service Nodes and ecosystem.",
   "main": "./dist/index.js",
   "scripts": {
@@ -21,6 +21,7 @@
   "dependencies": {
     "ethereumjs-util": "^5.2.0",
     "node-fetch": "^2.2.0",
+    "web3": "^1.0.0-beta.36",
     "web3-utils": "^1.0.0-beta.36"
   },
   "devDependencies": {
