@@ -45,12 +45,14 @@ let personalWalletAddress;
  * @param  {String}    _personalWalletAddress
  * @param  {String}    _network
  */
-const initSdk = (_web3 = web3, _privateKey, _personalWalletAddress, _network) => {
+const initSdk = (_privateKey, _personalWalletAddress, _web3 = web3, _network) => {
   web3 = _web3;
   personalWalletAddress = _personalWalletAddress;
   privateKey = Buffer.from(_privateKey, 'hex');
   publicAddress = ethUtils.bufferToHex(ethUtils.privateToAddress(privateKey));
   isInitialised = true;
+  console.log('initialised?: ', isInitialised);
+
   //TODO: network feature for development usecases
   if (_network)
       console.log(_network);
@@ -80,16 +82,33 @@ const checkEns = async (input) => {
 };
 
 /**
+ * @desc deploy personal multisig with ENS
+ * @method checkEns
+ * @param  {String}  ens
+ * @param  {String}  publicAddress
+ */
+const deployUserAccount = async (ens, publicAddress) => {
+  if (!utils.isAddress(publicAddress)){
+    throw new Error("Not a valid public address.")
+  } else if (typeof ens !== "string") {
+    throw new Error("ENS is not a string")
+  }
+  return await fetch(`http://localhost:8080/deploy/${publicAddress}/${ens}`)
+};
+
+/**
  * @desc Gasless Transactions User Object
  * @class GaslessTransactions
  * @param  {String}  _ensName
  * @param  {String}  _personalWalletAddress
  */
 class GaslessTransactions {
+
   constructor(_ensName, _privateKey, _personalWalletAddress) {
     this.ensName = _ensName;
     this.privateKey = _privateKey;
     this.personalWalletAddress = _personalWalletAddress;
+    this.publicAddress = ethUtils.bufferToHex(ethUtils.privateToAddress(_privateKey));
   };
 
   /**
@@ -98,8 +117,9 @@ class GaslessTransactions {
    * @param  {Object}  payload
    * @returns {String}  transaction hash
    */
+
   static async relayTx(payload) {
-    const res = await fetch(`https://tenz-tsn-js-azxbvdmtys.now.sh/execute/${personalWalletAddress}`, {
+    const res = await fetch(`http://localhost:8080/execute/${this.personalWalletAddress}`, {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
@@ -110,6 +130,12 @@ class GaslessTransactions {
     return JSON.parse(await res.text());
   };
 
+  static async transferTokensNoReward(tokenAddress, amount, toAddress) {
+    const data = await prepareTokenTransferData(amount, toAddress);
+    return relayTx(await preparePayload(this.personalWalletAddress, this.publicAddress, tokenAddress, zeroWei, data, rewardTypeEther, zeroWei));
+  }
+
+
   /**
    * @desc checks user's access to personal wallet
    * @method checkAccess
@@ -117,13 +143,30 @@ class GaslessTransactions {
    * @param  {String}  personalWallet
    * @returns {Boolean}  true or false for access
    */
+
   static async checkAccess(address, personalWallet = personalWalletAddress) {
     const personalWalletABI = [{ "constant": false, "inputs": [{ "name": "_v", "type": "uint8" }, { "name": "_r", "type": "bytes32" }, { "name": "_s", "type": "bytes32" }, { "name": "_from", "type": "address" }, { "name": "_to", "type": "address" }, { "name": "_value", "type": "uint256" }, { "name": "_data", "type": "bytes" }, { "name": "_rewardType", "type": "address" }, { "name": "_rewardAmount", "type": "uint256" }], "name": "execute", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [{ "name": "account", "type": "address" }], "name": "isActionAccount", "outputs": [{ "name": "", "type": "bool" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [{ "name": "account", "type": "address" }], "name": "canLogIn", "outputs": [{ "name": "", "type": "bool" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [{ "name": "", "type": "address" }], "name": "nonces", "outputs": [{ "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [{ "name": "account", "type": "address" }], "name": "isMasterAccount", "outputs": [{ "name": "", "type": "bool" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "name": "account", "type": "address" }], "name": "addMasterAccount", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [{ "name": "", "type": "address" }], "name": "roles", "outputs": [{ "name": "", "type": "uint8" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "name": "account", "type": "address" }], "name": "removeAccount", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": false, "inputs": [{ "name": "account", "type": "address" }], "name": "addActionAccount", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "name": "masterAccount", "type": "address" }], "payable": false, "stateMutability": "nonpayable", "type": "constructor" }, { "payable": true, "stateMutability": "payable", "type": "fallback" }];
     const walletInstance = new web3.eth.Contract(personalWalletABI, personalWallet);
     return await walletInstance.methods.canLogIn(address).call().catch(e => false);
   };
 
+}
+
+/**
+ * @desc checks user's access to personal wallet
+ * @method checkAccess
+ * @param  {String}  address
+ * @param  {String}  personalWallet
+ * @returns {Boolean}  true or false for access
+ */
+
+const checkAccess = async (address, personalWallet = personalWalletAddress) => {
+  const personalWalletABI = [{ "constant": false, "inputs": [{ "name": "_v", "type": "uint8" }, { "name": "_r", "type": "bytes32" }, { "name": "_s", "type": "bytes32" }, { "name": "_from", "type": "address" }, { "name": "_to", "type": "address" }, { "name": "_value", "type": "uint256" }, { "name": "_data", "type": "bytes" }, { "name": "_rewardType", "type": "address" }, { "name": "_rewardAmount", "type": "uint256" }], "name": "execute", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [{ "name": "account", "type": "address" }], "name": "isActionAccount", "outputs": [{ "name": "", "type": "bool" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [{ "name": "account", "type": "address" }], "name": "canLogIn", "outputs": [{ "name": "", "type": "bool" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [{ "name": "", "type": "address" }], "name": "nonces", "outputs": [{ "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [{ "name": "account", "type": "address" }], "name": "isMasterAccount", "outputs": [{ "name": "", "type": "bool" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "name": "account", "type": "address" }], "name": "addMasterAccount", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [{ "name": "", "type": "address" }], "name": "roles", "outputs": [{ "name": "", "type": "uint8" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "name": "account", "type": "address" }], "name": "removeAccount", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": false, "inputs": [{ "name": "account", "type": "address" }], "name": "addActionAccount", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "name": "masterAccount", "type": "address" }], "payable": false, "stateMutability": "nonpayable", "type": "constructor" }, { "payable": true, "stateMutability": "payable", "type": "fallback" }];
+  const walletInstance = new web3.eth.Contract(personalWalletABI, personalWallet);
+  return await walletInstance.methods.canLogIn(address).call().catch(e => false);
 };
+
+
 
 const preparePayload = async (targetWallet, from, to, value, data, rewardType, rewardAmount) => {
     if(!isInitialised) console.log("ERROR: SDK not initialized");
@@ -191,6 +234,25 @@ const prepareAddActionData = async (account) => {
     return encoded;
 }
 
+/**
+ * @desc gasless transaction call
+ * @method relayTX
+ * @param  {Object}  payload
+ * @returns {String}  transaction hash
+ */
+
+const relayTx = async (payload) => {
+  const res = await fetch(`http://localhost:8080/execute/${personalWalletAddress}`, {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    body: payload
+  });
+  return JSON.parse(await res.text());
+};
+
 const transferEtherNoReward = async (ethAmountInWei, toAddress) => {
     return relayTx(await preparePayload(personalWalletAddress, publicAddress, toAddress, ethAmountInWei, noData, rewardTypeEther, zeroWei));
 }
@@ -224,6 +286,7 @@ module.exports = {
     addMasterNoReward,
     checkAccess,
     checkEns,
+    deployUserAccount,
     getTsn,
     initSdk,
     GaslessTransactions,
