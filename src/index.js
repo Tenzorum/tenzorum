@@ -26,6 +26,7 @@ const utils = require('web3-utils');
 const ethUtils = require('ethereumjs-util');
 const fetch = require('node-fetch');
 
+let RELAYER_URL = "https://relayer.tenzorum.app";
 let isInitialised = false;
 
 const zeroWei = 0;
@@ -93,7 +94,7 @@ const deployUserAccount = async (ens, publicAddress) => {
   } else if (typeof ens !== "string") {
     throw new Error("ENS is not a string")
   }
-  return await fetch(`http://localhost:8080/deploy/${publicAddress}/${ens}`)
+  return await fetch(`${RELAYER_URL}/deploy/${publicAddress}/${ens}`)
 };
 
 /**
@@ -119,7 +120,7 @@ class GaslessTransactions {
    */
 
   static async relayTx(payload) {
-    const res = await fetch(`http://localhost:8080/execute/${this.personalWalletAddress}`, {
+    const res = await fetch(`${RELAYER_URL}/execute/${this.personalWalletAddress}`, {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
@@ -242,7 +243,7 @@ const prepareAddActionData = async (account) => {
  */
 
 const relayTx = async (payload) => {
-  const res = await fetch(`http://localhost:8080/execute/${personalWalletAddress}`, {
+  const res = await fetch(`${RELAYER_URL}/execute/${personalWalletAddress}`, {
     method: 'POST',
     headers: {
       'Accept': 'application/json',
