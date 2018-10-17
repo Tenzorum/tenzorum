@@ -1,20 +1,90 @@
-# Tenzorum TSNN SDK
+<p align="center">
+  <a href="https://tenzorum.org/">
+    <img alt="tenzorum" src="https://tenzorum.org/wp-content/uploads/2018/09/logo_tenz-e1537146360637.png" width="144">
+  </a>
+</p>
 
+<h3 align="center">
+  Tenzorum
+</h3>
+
+<p align="center">
+  Easy to use SDK for implementing gasless transactions
+</p>
+
+<center>
+
+[![npm Version](https://img.shields.io/npm/v/tenzorum.svg)](https://www.npmjs.com/package/tenzorum)
+[![License](https://img.shields.io/npm/l/tenzorum.svg)](https://www.npmjs.com/package/tenzorum)
+[![Downloads](https://img.shields.io/npm/dt/tenzorum.svg)](https://www.npmjs.com/package/tenzorum)
+[![Build Status](https://travis-ci.org/airbnb/enzyme.svg)](https://travis-ci.org/airbnb/enzyme)
+
+</center>
+
+## Dependencies
+
+Users must have an environment capable of running web3@1.0.0
+
+| Package                                                | Version                                                                                                                             | Docs                                                                                                                                                                                                                                                                          | Description                                                                        |
+| ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| [`web3`](/packages/web3)               | [![npm](https://img.shields.io/npm/v/web3.svg?style=flat-square)](https://www.npmjs.com/package/web3)               | [![](https://img.shields.io/badge/API%20Docs-site-green.svg?style=flat-square)](https://web3js.readthedocs.io/en/1.0/getting-started.html) [![](https://img.shields.io/badge/API%20Docs-markdown-lightgrey.svg?style=flat-square)](/packages/web3/docs)          | The core of web3                                                          |
+
+
+# Tenzorum TSNN SDK
 Utility for signing transactions and interaction with TSNN.
 
+## Installation
+```bash
+npm i tenzorum --save
 ```
-npm i tenzorum
-...
+
+## About
+To onboard a user to be able to use gasless transactions the user's app must have 2 components.
+
+1. Access to a private key (ideally from a secure enclave)
+```js
+const privateKey = "d51729c3b597d162d7be8f83c8ee4eb137db72e7e0828d7709a1a5b274afe017";
+```
+2. Deployed a Personal Multisignature Wallet for the user
+```js
+import {deployPersonalMultisig} from tenzSdk;
+const personalMultisigWallet = await deployPersonalMultisig(<publicKey from privateKey>)
+```
+returns <ContractAddress>[0xf8894138aa4d7b54b7d49afa9d5600cdb5178721](https://ropsten.etherscan.io/address/0xf8894138aa4d7b54b7d49afa9d5600cdb5178721#readContract)
+
+### 👩‍🚀 User
+For better UX it's recommended to deploy a ens username which resolves to the user's personal multisig wallet.
+This can be done all at once using the ```deployUserAccount``` method.
+```js
+import {deployUserAccount} from 'tenzorum';
+deployUserAccount('user.ens-name.eth', "0xf8894138aa4d7b54b7d49afa9d5600cdb5178721");
+```
+
+You can then initialise the SDK
+```js
 const tenzSdk = require('tenzorum');
 tenzSdk.initSdk(web3, privateKey, personalWalletAddress);
+```
+```ES6
+/*ES6*/
+import {initSdk, transferTokensWithTokenReward} from 'tenzorum';
+initSdk(web3, privateKey, personalWalletAddress);
+```
+
+### ⛽️ Gasless Transactions
+The user's wallet can then access transferring tokens via gasless transactions easily
+with the following function calls.
+
+```js
 const result = await tenzSdk.transferTokensWithTokenReward(tokenAddress, tenTokens, toAddress, oneToken);
 console.log(result);
 ```
 
+
 This will print out a message in the following format as expected in the body of POST 
 request by TSNN:
 
-```
+```js
 {
   "v":"0x1b",
   "r":"0x2a061c04485a307802d76f3e4c7fda40ec4d3390df3c6df28fd6c3165ca1fb59",
