@@ -54,7 +54,11 @@ var getTsn = exports.getTsn = async function getTsn() {
 var relayTx = async function relayTx(payload) {
     var target = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : personalWalletAddress;
 
-    var res = await fetch('https://tenzorum-service-node-kviqczukax.now.sh/execute/' + target, {
+    var url = 'https://tenzorum-service-node-kviqczukax.now.sh/execute/' + target;
+    if (isDebug) {
+        console.log('Relaying to: ' + url);
+    }
+    var res = await fetch(url, {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
@@ -95,11 +99,12 @@ var preparePayload = exports.preparePayload = async function preparePayload(targ
     payload.rewardType = rewardType;
     payload.rewardAmount = rewardAmount.toString();
 
+    var json = JSON.stringify(payload);
     if (isDebug) {
-        console.log(JSON.stringify(payload));
+        console.log(json);
     }
 
-    return JSON.stringify(payload);
+    return json;
 };
 
 var prepareTokenTransferData = exports.prepareTokenTransferData = async function prepareTokenTransferData(amount, to) {

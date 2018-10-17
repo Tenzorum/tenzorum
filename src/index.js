@@ -19,7 +19,9 @@ export const noncesABI = [{"constant": true, "inputs": [{ "name": "", "type": "a
 //mainnet
 //export const loveTokenAddress = "0x00";
 //ropsten
-export const loveTokenAddress = "0x2134833ace155a1d54160fbe7d4651c4c67dc7f2";
+//export const loveTokenAddress = "0x2134833ace155a1d54160fbe7d4651c4c67dc7f2";
+//rinkeby
+export const loveTokenAddress = "0xe35f264d1b22720524eb11a04b889a3d71308826";
 
 let web3;
 let privateKey;
@@ -47,21 +49,29 @@ export const getTsn = async () => {
 }
 
 const relayTx = async (payload, target=personalWalletAddress) => {
-  const res = await fetch(`https://tenzorum-service-node-kviqczukax.now.sh/execute/${target}`, {
-    method: 'POST',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
-    },
-    body: payload
-  });
+    const url = `https://tenzorum-service-node-kviqczukax.now.sh/execute/${target}`;
+    if(isDebug) {
+        console.log(`Relaying to: ${url}`)
+    }
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: payload
+    });
 
-  return JSON.parse(await res.text());
+    const json = JSON.parse(await res.text());
+    if(isDebug) {
+        console.log(json);
+    }
+    return json;
 };
 
 export const checkAccess = exports.checkAccess = async function checkAccess(address, personalWallet = personalWalletAddress) {
-  const walletInstance = new web3.eth.Contract(personalWalletABI, personalWallet);
-  return await walletInstance.methods.canLogIn(address).call().catch(e => false);
+    const walletInstance = new web3.eth.Contract(personalWalletABI, personalWallet);
+    return await walletInstance.methods.canLogIn(address).call().catch(e => false);
 };
 
 export const preparePayload = async (targetWallet, from, to, value, data, rewardType, rewardAmount) => {
@@ -84,12 +94,12 @@ export const preparePayload = async (targetWallet, from, to, value, data, reward
     payload.rewardType = rewardType;
     payload.rewardAmount = rewardAmount.toString();
 
-
+    const json = JSON.stringify(payload);
     if(isDebug) {
-        console.log(JSON.stringify(payload));
+        console.log(json);
     }
 
-    return JSON.stringify(payload);
+    return json;
 }
 
 export const prepareTokenTransferData = async (amount, to) => {
