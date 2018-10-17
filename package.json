@@ -1,6 +1,6 @@
 {
   "name": "tenzorum",
-  "version": "0.0.97",
+  "version": "0.0.98",
   "description": "Javascript module to connect to Tenzorum's Service Nodes and ecosystem.",
   "main": "./dist/index.js",
   "scripts": {
