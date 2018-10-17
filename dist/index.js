@@ -1,7 +1,7 @@
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
-    value: true
+  value: true
 });
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -36,16 +36,26 @@ var utils = require('web3-utils');
 var ethUtils = require('ethereumjs-util');
 var fetch = require('node-fetch');
 
+var RELAYER_URL = "https://relayer.tenzorum.app";
 var isInitialised = false;
 
 var zeroWei = 0;
 var noData = exports.noData = "0x00";
 var rewardTypeEther = exports.rewardTypeEther = "0x0000000000000000000000000000000000000000";
 var tsnUri = exports.tsnUri = "http://tsnn.tenzorum.xyz:1888/tsnn";
+var personalWalletABI = exports.personalWalletABI = [{ "constant": false, "inputs": [{ "name": "_v", "type": "uint8" }, { "name": "_r", "type": "bytes32" }, { "name": "_s", "type": "bytes32" }, { "name": "_from", "type": "address" }, { "name": "_to", "type": "address" }, { "name": "_value", "type": "uint256" }, { "name": "_data", "type": "bytes" }, { "name": "_rewardType", "type": "address" }, { "name": "_rewardAmount", "type": "uint256" }], "name": "execute", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [{ "name": "account", "type": "address" }], "name": "isActionAccount", "outputs": [{ "name": "", "type": "bool" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [{ "name": "account", "type": "address" }], "name": "canLogIn", "outputs": [{ "name": "", "type": "bool" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [{ "name": "", "type": "address" }], "name": "nonces", "outputs": [{ "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [{ "name": "account", "type": "address" }], "name": "isMasterAccount", "outputs": [{ "name": "", "type": "bool" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "name": "account", "type": "address" }], "name": "addMasterAccount", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [{ "name": "", "type": "address" }], "name": "roles", "outputs": [{ "name": "", "type": "uint8" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "name": "account", "type": "address" }], "name": "removeAccount", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": false, "inputs": [{ "name": "account", "type": "address" }], "name": "addActionAccount", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "name": "masterAccount", "type": "address" }], "payable": false, "stateMutability": "nonpayable", "type": "constructor" }, { "payable": true, "stateMutability": "payable", "type": "fallback" }];
+var noncesABI = exports.noncesABI = [{ "constant": true, "inputs": [{ "name": "", "type": "address" }], "name": "nonces", "outputs": [{ "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }];
+
+//mainnet
+//export const loveTokenAddress = "0x00";
+//ropsten
+var loveTokenAddress = exports.loveTokenAddress = "0x2134833ace155a1d54160fbe7d4651c4c67dc7f2";
 
 var privateKey = void 0;
 var publicAddress = void 0;
 var personalWalletAddress = void 0;
+
+var isDebug = void 0;
 
 /**
  * @desc initialise SDK
@@ -56,21 +66,25 @@ var personalWalletAddress = void 0;
  * @param  {String}    _network
  */
 var initSdk = function initSdk(_privateKey, _personalWalletAddress) {
-    var _web3 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : web3;
+  var _web3 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : web3;
 
-    var _network = arguments[3];
+  var _network = arguments[3];
 
-    web3 = _web3;
-    personalWalletAddress = _personalWalletAddress;
-    privateKey = Buffer.from(_privateKey, 'hex');
-    publicAddress = ethUtils.bufferToHex(ethUtils.privateToAddress(privateKey));
-    isInitialised = true;
-    console.log('initialised?: ', isInitialised);
+  web3 = _web3;
+  personalWalletAddress = _personalWalletAddress;
+  privateKey = Buffer.from(_privateKey, 'hex');
+  publicAddress = ethUtils.bufferToHex(ethUtils.privateToAddress(privateKey));
+  isInitialised = true;
+  console.log('initialised?: ', isInitialised);
 
-    //TODO: network feature for development usecases
-    if (_network) console.log(_network);
-    //  _network === "ropsten"
-    //    contractAddress changes per network
+  //TODO: network feature for development usecases
+  if (_network) console.log(_network);
+  //  _network === "ropsten"
+  //    contractAddress changes per network
+};
+
+var setDebugMode = exports.setDebugMode = function setDebugMode() {
+  isDebug = true;
 };
 
 /**
@@ -79,9 +93,9 @@ var initSdk = function initSdk(_privateKey, _personalWalletAddress) {
  * @return {String}
  */
 var getTsn = async function getTsn() {
-    var response = await fetch(tsnUri);
-    var json = await response.json();
-    return json.tsn;
+  var response = await fetch(tsnUri);
+  var json = await response.json();
+  return json.tsn;
 };
 
 /**
@@ -90,8 +104,8 @@ var getTsn = async function getTsn() {
  * @param  {String}  input
  */
 var checkEns = async function checkEns(input) {
-    var ensContract = new web3.eth.Contract(tnsAbi, tnsAddress);
-    return await ensContract.subdomainOwner(input, 'tenz-id', 'xyz');
+  var ensContract = new web3.eth.Contract(tnsAbi, tnsAddress);
+  return await ensContract.subdomainOwner(input, 'tenz-id', 'xyz');
 };
 
 /**
@@ -101,12 +115,12 @@ var checkEns = async function checkEns(input) {
  * @param  {String}  publicAddress
  */
 var deployUserAccount = async function deployUserAccount(ens, publicAddress) {
-    if (!utils.isAddress(publicAddress)) {
-        throw new Error("Not a valid public address.");
-    } else if (typeof ens !== "string") {
-        throw new Error("ENS is not a string");
-    }
-    return await fetch('http://localhost:8080/deploy/' + publicAddress + '/' + ens);
+  if (!utils.isAddress(publicAddress)) {
+    throw new Error("Not a valid public address.");
+  } else if (typeof ens !== "string") {
+    throw new Error("ENS is not a string");
+  }
+  return await fetch(RELAYER_URL + '/deploy/' + publicAddress + '/' + ens);
 };
 
 /**
@@ -117,134 +131,192 @@ var deployUserAccount = async function deployUserAccount(ens, publicAddress) {
  */
 
 var GaslessTransactions = function () {
-    function GaslessTransactions(_ensName, _privateKey, _personalWalletAddress) {
-        _classCallCheck(this, GaslessTransactions);
+  function GaslessTransactions(_ensName, _privateKey, _personalWalletAddress) {
+    _classCallCheck(this, GaslessTransactions);
 
-        this.ensName = _ensName;
-        this.privateKey = _privateKey;
-        this.personalWalletAddress = _personalWalletAddress;
-        this.publicAddress = ethUtils.bufferToHex(ethUtils.privateToAddress(_privateKey));
+    this.ensName = _ensName;
+    this.privateKey = _privateKey;
+    this.personalWalletAddress = _personalWalletAddress;
+    this.publicAddress = ethUtils.bufferToHex(ethUtils.privateToAddress(_privateKey));
+  }
+
+  _createClass(GaslessTransactions, null, [{
+    key: 'relayTx',
+
+
+    /**
+     * @desc gasless transaction call
+     * @method relayTX
+     * @param  {Object}  payload
+     * @returns {String}  transaction hash
+     */
+
+    value: async function relayTx(payload) {
+      var res = await fetch(RELAYER_URL + '/execute/' + this.personalWalletAddress, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: payload
+      });
+      return JSON.parse((await res.text()));
+    }
+  }, {
+    key: 'transferTokensNoReward',
+    value: async function transferTokensNoReward(tokenAddress, amount, toAddress) {
+      var data = await prepareTokenTransferData(amount, toAddress);
+      return relayTx((await preparePayload(this.personalWalletAddress, this.publicAddress, tokenAddress, zeroWei, data, rewardTypeEther, zeroWei)));
     }
 
-    _createClass(GaslessTransactions, null, [{
-        key: 'relayTx',
+    /**
+     * @desc checks user's access to personal wallet
+     * @method checkAccess
+     * @param  {String}  address
+     * @param  {String}  personalWallet
+     * @returns {Boolean}  true or false for access
+     */
 
+  }, {
+    key: 'checkAccess',
+    value: async function checkAccess(address) {
+      var personalWallet = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : personalWalletAddress;
 
-        /**
-         * @desc gasless transaction call
-         * @method relayTX
-         * @param  {Object}  payload
-         * @returns {String}  transaction hash
-         */
+      var personalWalletABI = [{ "constant": false, "inputs": [{ "name": "_v", "type": "uint8" }, { "name": "_r", "type": "bytes32" }, { "name": "_s", "type": "bytes32" }, { "name": "_from", "type": "address" }, { "name": "_to", "type": "address" }, { "name": "_value", "type": "uint256" }, { "name": "_data", "type": "bytes" }, { "name": "_rewardType", "type": "address" }, { "name": "_rewardAmount", "type": "uint256" }], "name": "execute", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [{ "name": "account", "type": "address" }], "name": "isActionAccount", "outputs": [{ "name": "", "type": "bool" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [{ "name": "account", "type": "address" }], "name": "canLogIn", "outputs": [{ "name": "", "type": "bool" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [{ "name": "", "type": "address" }], "name": "nonces", "outputs": [{ "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [{ "name": "account", "type": "address" }], "name": "isMasterAccount", "outputs": [{ "name": "", "type": "bool" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "name": "account", "type": "address" }], "name": "addMasterAccount", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [{ "name": "", "type": "address" }], "name": "roles", "outputs": [{ "name": "", "type": "uint8" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "name": "account", "type": "address" }], "name": "removeAccount", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": false, "inputs": [{ "name": "account", "type": "address" }], "name": "addActionAccount", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "name": "masterAccount", "type": "address" }], "payable": false, "stateMutability": "nonpayable", "type": "constructor" }, { "payable": true, "stateMutability": "payable", "type": "fallback" }];
+      var walletInstance = new web3.eth.Contract(personalWalletABI, personalWallet);
+      return await walletInstance.methods.canLogIn(address).call().catch(function (e) {
+        return false;
+      });
+    }
+  }]);
 
-        value: async function relayTx(payload) {
-            var res = await fetch('http://localhost:8080/execute/' + this.personalWalletAddress, {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: payload
-            });
-            return JSON.parse((await res.text()));
-        }
-    }, {
-        key: 'transferTokensNoReward',
-        value: async function transferTokensNoReward(tokenAddress, amount, toAddress) {
-            var data = await prepareTokenTransferData(amount, toAddress);
-            return relayTx((await preparePayload(this.personalWalletAddress, this.publicAddress, tokenAddress, zeroWei, data, rewardTypeEther, zeroWei)));
-        }
-
-        /**
-         * @desc checks user's access to personal wallet
-         * @method checkAccess
-         * @param  {String}  address
-         * @param  {String}  personalWallet
-         * @returns {Boolean}  true or false for access
-         */
-
-    }, {
-        key: 'checkAccess',
-        value: async function checkAccess(address) {
-            var personalWallet = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : personalWalletAddress;
-
-            var personalWalletABI = [{ "constant": false, "inputs": [{ "name": "_v", "type": "uint8" }, { "name": "_r", "type": "bytes32" }, { "name": "_s", "type": "bytes32" }, { "name": "_from", "type": "address" }, { "name": "_to", "type": "address" }, { "name": "_value", "type": "uint256" }, { "name": "_data", "type": "bytes" }, { "name": "_rewardType", "type": "address" }, { "name": "_rewardAmount", "type": "uint256" }], "name": "execute", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [{ "name": "account", "type": "address" }], "name": "isActionAccount", "outputs": [{ "name": "", "type": "bool" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [{ "name": "account", "type": "address" }], "name": "canLogIn", "outputs": [{ "name": "", "type": "bool" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [{ "name": "", "type": "address" }], "name": "nonces", "outputs": [{ "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [{ "name": "account", "type": "address" }], "name": "isMasterAccount", "outputs": [{ "name": "", "type": "bool" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "name": "account", "type": "address" }], "name": "addMasterAccount", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [{ "name": "", "type": "address" }], "name": "roles", "outputs": [{ "name": "", "type": "uint8" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "name": "account", "type": "address" }], "name": "removeAccount", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": false, "inputs": [{ "name": "account", "type": "address" }], "name": "addActionAccount", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "name": "masterAccount", "type": "address" }], "payable": false, "stateMutability": "nonpayable", "type": "constructor" }, { "payable": true, "stateMutability": "payable", "type": "fallback" }];
-            var walletInstance = new web3.eth.Contract(personalWalletABI, personalWallet);
-            return await walletInstance.methods.canLogIn(address).call().catch(function (e) {
-                return false;
-            });
-        }
-    }]);
-
-    return GaslessTransactions;
+  return GaslessTransactions;
 }();
 
-;
+/**
+ * @desc checks user's access to personal wallet
+ * @method checkAccess
+ * @param  {String}  address
+ * @param  {String}  personalWallet
+ * @returns {Boolean}  true or false for access
+ */
+
+var checkAccess = async function checkAccess(address) {
+  var personalWallet = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : personalWalletAddress;
+
+  var personalWalletABI = [{ "constant": false, "inputs": [{ "name": "_v", "type": "uint8" }, { "name": "_r", "type": "bytes32" }, { "name": "_s", "type": "bytes32" }, { "name": "_from", "type": "address" }, { "name": "_to", "type": "address" }, { "name": "_value", "type": "uint256" }, { "name": "_data", "type": "bytes" }, { "name": "_rewardType", "type": "address" }, { "name": "_rewardAmount", "type": "uint256" }], "name": "execute", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [{ "name": "account", "type": "address" }], "name": "isActionAccount", "outputs": [{ "name": "", "type": "bool" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [{ "name": "account", "type": "address" }], "name": "canLogIn", "outputs": [{ "name": "", "type": "bool" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [{ "name": "", "type": "address" }], "name": "nonces", "outputs": [{ "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [{ "name": "account", "type": "address" }], "name": "isMasterAccount", "outputs": [{ "name": "", "type": "bool" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "name": "account", "type": "address" }], "name": "addMasterAccount", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [{ "name": "", "type": "address" }], "name": "roles", "outputs": [{ "name": "", "type": "uint8" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "name": "account", "type": "address" }], "name": "removeAccount", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": false, "inputs": [{ "name": "account", "type": "address" }], "name": "addActionAccount", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "name": "masterAccount", "type": "address" }], "payable": false, "stateMutability": "nonpayable", "type": "constructor" }, { "payable": true, "stateMutability": "payable", "type": "fallback" }];
+  var walletInstance = new web3.eth.Contract(personalWalletABI, personalWallet);
+  return await walletInstance.methods.canLogIn(address).call().catch(function (e) {
+    return false;
+  });
+};
 
 var preparePayload = async function preparePayload(targetWallet, from, to, value, data, rewardType, rewardAmount) {
-    if (!isInitialised) console.log("ERROR: SDK not initialized");
+  if (!isInitialised) console.log("ERROR: SDK not initialized");
 
-    var personalWalletABI = [{ "constant": false, "inputs": [{ "name": "_v", "type": "uint8" }, { "name": "_r", "type": "bytes32" }, { "name": "_s", "type": "bytes32" }, { "name": "_from", "type": "address" }, { "name": "_to", "type": "address" }, { "name": "_value", "type": "uint256" }, { "name": "_data", "type": "bytes" }, { "name": "_rewardType", "type": "address" }, { "name": "_rewardAmount", "type": "uint256" }], "name": "execute", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [{ "name": "account", "type": "address" }], "name": "isActionAccount", "outputs": [{ "name": "", "type": "bool" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [{ "name": "", "type": "address" }], "name": "nonces", "outputs": [{ "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [{ "name": "account", "type": "address" }], "name": "isMasterAccount", "outputs": [{ "name": "", "type": "bool" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [{ "name": "", "type": "address" }], "name": "roles", "outputs": [{ "name": "", "type": "uint8" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [], "name": "login", "outputs": [{ "name": "", "type": "bool" }], "payable": false, "stateMutability": "view", "type": "function" }, { "inputs": [{ "name": "masterAccount", "type": "address" }], "payable": false, "stateMutability": "nonpayable", "type": "constructor" }, { "payable": true, "stateMutability": "payable", "type": "fallback" }];
-    var walletInstance = new web3.eth.Contract(personalWalletABI, targetWallet);
-    var nonce = await walletInstance.methods.nonces(from).call();
-    var hash = ethUtils.toBuffer(utils.soliditySha3(targetWallet, from, to, value, data, rewardType, rewardAmount, nonce));
+  var noncesInstance = new web3.eth.Contract(noncesABI, targetWallet);
+  var nonce = await noncesInstance.methods.nonces(from).call();
+  var hash = ethUtils.toBuffer(utils.soliditySha3(targetWallet, from, to, value, data, rewardType, rewardAmount, nonce));
 
-    var signedHash = ethUtils.ecsign(ethUtils.hashPersonalMessage(hash), privateKey);
+  var signedHash = ethUtils.ecsign(ethUtils.hashPersonalMessage(hash), privateKey);
 
-    var payload = {};
-    payload.v = ethUtils.bufferToHex(signedHash.v);
-    payload.r = ethUtils.bufferToHex(signedHash.r);
-    payload.s = ethUtils.bufferToHex(signedHash.s);
-    payload.from = from;
-    payload.to = to;
-    payload.value = value.toString();
-    payload.data = data;
-    payload.rewardType = rewardType;
-    payload.rewardAmount = rewardAmount.toString();
+  var payload = {};
+  payload.v = ethUtils.bufferToHex(signedHash.v);
+  payload.r = ethUtils.bufferToHex(signedHash.r);
+  payload.s = ethUtils.bufferToHex(signedHash.s);
+  payload.from = from;
+  payload.to = to;
+  payload.value = value.toString();
+  payload.data = data;
+  payload.rewardType = rewardType;
+  payload.rewardAmount = rewardAmount.toString();
 
-    // console.log('"'+payload.v+'","'+payload.r+'","'+payload.s+'","'+payload.from+'","'+payload.to+'","'+
-    //     payload.value+'","'+payload.data+'","'+payload.rewardType+'","'+payload.rewardAmount+'"');
+  if (isDebug) {
+    console.log(JSON.stringify(payload));
+  }
 
-    return JSON.stringify(payload);
+  return JSON.stringify(payload);
 };
 
 var prepareTokenTransferData = async function prepareTokenTransferData(amount, to) {
-    var encoded = await web3.eth.abi.encodeFunctionCall({
-        name: 'transfer',
-        type: 'function',
-        inputs: [{
-            type: 'address',
-            name: 'to'
-        }, {
-            type: 'uint256',
-            name: 'amount'
-        }]
-    }, [to, amount]);
-    return encoded;
+  var encoded = await web3.eth.abi.encodeFunctionCall({
+    name: 'transfer',
+    type: 'function',
+    inputs: [{
+      type: 'address',
+      name: 'to'
+    }, {
+      type: 'uint256',
+      name: 'amount'
+    }]
+  }, [to, amount]);
+  return encoded;
 };
 
 var prepareAddMasterData = async function prepareAddMasterData(account) {
-    var encoded = await web3.eth.abi.encodeFunctionCall({
-        name: 'addMasterAccount',
-        type: 'function',
-        inputs: [{
-            type: 'address',
-            name: 'account'
-        }]
-    }, [account]);
-    return encoded;
+  var encoded = await web3.eth.abi.encodeFunctionCall({
+    name: 'addMasterAccount',
+    type: 'function',
+    inputs: [{
+      type: 'address',
+      name: 'account'
+    }]
+  }, [account]);
+  return encoded;
 };
 
 var prepareAddActionData = async function prepareAddActionData(account) {
-    var encoded = await web3.eth.abi.encodeFunctionCall({
-        name: 'addActionAccount',
-        type: 'function',
-        inputs: [{
-            type: 'address',
-            name: 'account'
-        }]
-    }, [account]);
-    return encoded;
+  var encoded = await web3.eth.abi.encodeFunctionCall({
+    name: 'addActionAccount',
+    type: 'function',
+    inputs: [{
+      type: 'address',
+      name: 'account'
+    }]
+  }, [account]);
+  return encoded;
+};
+
+var prepareShareLoveData = exports.prepareShareLoveData = async function prepareShareLoveData(from, to, amount) {
+  var encoded = await web3.eth.abi.encodeFunctionCall({
+    name: 'shareLove',
+    type: 'function',
+    inputs: [{
+      type: 'address',
+      name: 'from'
+    }, {
+      type: 'address',
+      name: 'to'
+    }, {
+      type: 'uint256',
+      name: 'amount'
+    }]
+  }, [from, to, amount]);
+  return encoded;
+};
+
+var prepareCreateSubdomainData = exports.prepareCreateSubdomainData = async function prepareCreateSubdomainData(subdomain, domain, topdomain, owner, target) {
+  var encoded = await web3.eth.abi.encodeFunctionCall({
+    name: 'newSubdomain',
+    type: 'function',
+    inputs: [{
+      type: 'string',
+      name: '_subdomain'
+    }, {
+      type: 'string',
+      name: '_domain'
+    }, {
+      type: 'string',
+      name: '_topdomain'
+    }, {
+      type: 'address',
+      name: '_owner'
+    }, {
+      type: 'address',
+      name: '_target'
+    }]
+  }, [subdomain, domain, topdomain, owner, target]);
+  return encoded;
 };
 
 /**
@@ -255,55 +327,71 @@ var prepareAddActionData = async function prepareAddActionData(account) {
  */
 
 var relayTx = async function relayTx(payload) {
-    var res = await fetch('http://localhost:8080/execute/' + personalWalletAddress, {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: payload
-    });
-    return JSON.parse((await res.text()));
+  var res = await fetch(RELAYER_URL + '/execute/' + personalWalletAddress, {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    body: payload
+  });
+  return JSON.parse((await res.text()));
 };
 
 var transferEtherNoReward = async function transferEtherNoReward(ethAmountInWei, toAddress) {
-    return relayTx((await preparePayload(personalWalletAddress, publicAddress, toAddress, ethAmountInWei, noData, rewardTypeEther, zeroWei)));
+  return relayTx((await preparePayload(personalWalletAddress, publicAddress, toAddress, ethAmountInWei, noData, rewardTypeEther, zeroWei)));
 };
 
 var transferEtherWithEtherReward = async function transferEtherWithEtherReward(ethAmountInWei, toAddress, rewardAmount) {
-    return relayTx((await preparePayload(personalWalletAddress, publicAddress, toAddress, ethAmountInWei, noData, rewardTypeEther, rewardAmount)));
+  return relayTx((await preparePayload(personalWalletAddress, publicAddress, toAddress, ethAmountInWei, noData, rewardTypeEther, rewardAmount)));
 };
 
 var transferTokensNoReward = async function transferTokensNoReward(tokenAddress, amount, toAddress) {
-    var data = await prepareTokenTransferData(amount, toAddress);
-    return relayTx((await preparePayload(personalWalletAddress, publicAddress, tokenAddress, zeroWei, data, rewardTypeEther, zeroWei)));
+  var data = await prepareTokenTransferData(amount, toAddress);
+  return relayTx((await preparePayload(personalWalletAddress, publicAddress, tokenAddress, zeroWei, data, rewardTypeEther, zeroWei)));
 };
 
 var transferTokensWithTokenReward = async function transferTokensWithTokenReward(tokenAddress, amount, toAddress, rewardAmount) {
-    var data = await prepareTokenTransferData(amount, toAddress);
-    return relayTx((await preparePayload(personalWalletAddress, publicAddress, tokenAddress, zeroWei, data, tokenAddress, rewardAmount)));
+  var data = await prepareTokenTransferData(amount, toAddress);
+  return relayTx((await preparePayload(personalWalletAddress, publicAddress, tokenAddress, zeroWei, data, tokenAddress, rewardAmount)));
 };
 
 var addMasterNoReward = async function addMasterNoReward(account) {
-    var data = await prepareAddMasterData(account);
-    return relayTx((await preparePayload(personalWalletAddress, publicAddress, personalWalletAddress, zeroWei, data, rewardTypeEther, zeroWei)));
+  var data = await prepareAddMasterData(account);
+  return relayTx((await preparePayload(personalWalletAddress, publicAddress, personalWalletAddress, zeroWei, data, rewardTypeEther, zeroWei)));
 };
 
 var addActionNoReward = async function addActionNoReward(account) {
-    var data = await prepareAddActionData(account);
-    return relayTx((await preparePayload(personalWalletAddress, publicAddress, personalWalletAddress, zeroWei, data, rewardTypeEther, zeroWei)));
+  var data = await prepareAddActionData(account);
+  return relayTx((await preparePayload(personalWalletAddress, publicAddress, personalWalletAddress, zeroWei, data, rewardTypeEther, zeroWei)));
+};
+
+//For Love Token Only: https://github.com/Tenzorum/love-token
+var shareLove = exports.shareLove = async function shareLove(toAddress, amount) {
+  var data = await prepareShareLoveData(publicAddress, toAddress, amount);
+  return relayTx((await preparePayload(loveTokenAddress, publicAddress, loveTokenAddress, zeroWei, data, rewardTypeEther, zeroWei)), loveTokenAddress);
+};
+
+//Using Love Token contract to create tenz-id as a meta-tx
+var createTenzId = exports.createTenzId = async function createTenzId(subdomain, owner, target) {
+  var data = await prepareCreateSubdomainData(subdomain, "tenz-id", "xyz", owner, target);
+  return relayTx((await preparePayload(loveTokenAddress, publicAddress, loveTokenAddress, zeroWei, data, rewardTypeEther, zeroWei)), loveTokenAddress);
 };
 
 module.exports = {
-    addActionNoReward: addActionNoReward,
-    addMasterNoReward: addMasterNoReward,
-    checkEns: checkEns,
-    deployUserAccount: deployUserAccount,
-    getTsn: getTsn,
-    initSdk: initSdk,
-    GaslessTransactions: GaslessTransactions,
-    transferEtherNoReward: transferEtherNoReward,
-    transferEtherWithEtherReward: transferEtherWithEtherReward,
-    transferTokensNoReward: transferTokensNoReward,
-    transferTokensWithTokenReward: transferTokensWithTokenReward
+  addActionNoReward: addActionNoReward,
+  addMasterNoReward: addMasterNoReward,
+  checkAccess: checkAccess,
+  checkEns: checkEns,
+  deployUserAccount: deployUserAccount,
+  getTsn: getTsn,
+  initSdk: initSdk,
+  GaslessTransactions: GaslessTransactions,
+  transferEtherNoReward: transferEtherNoReward,
+  transferEtherWithEtherReward: transferEtherWithEtherReward,
+  transferTokensNoReward: transferTokensNoReward,
+  transferTokensWithTokenReward: transferTokensWithTokenReward,
+  shareLove: shareLove,
+  createTenzId: createTenzId,
+  setDebugMode: setDebugMode
 };
