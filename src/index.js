@@ -18,8 +18,8 @@ let web3 = new Web3();
 
 const tnsAbi = [{"anonymous":false,"inputs":[],"name":"DomainTransfersLocked","type":"event"},{"constant":false,"inputs":[],"name":"lockDomainOwnershipTransfers","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_subdomain","type":"string"},{"name":"_domain","type":"string"},{"name":"_topdomain","type":"string"},{"name":"_owner","type":"address"},{"name":"_target","type":"address"}],"name":"newSubdomain","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"anonymous":false,"inputs":[{"indexed":true,"name":"previousRegistry","type":"address"},{"indexed":true,"name":"newRegistry","type":"address"}],"name":"RegistryUpdated","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"previousOwner","type":"address"},{"indexed":true,"name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"creator","type":"address"},{"indexed":true,"name":"owner","type":"address"},{"indexed":false,"name":"subdomain","type":"string"},{"indexed":false,"name":"domain","type":"string"},{"indexed":false,"name":"topdomain","type":"string"}],"name":"SubdomainCreated","type":"event"},{"constant":false,"inputs":[{"name":"_owner","type":"address"}],"name":"transferContractOwnership","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"anonymous":false,"inputs":[{"indexed":true,"name":"previousResolver","type":"address"},{"indexed":true,"name":"newResolver","type":"address"}],"name":"ResolverUpdated","type":"event"},{"constant":false,"inputs":[{"name":"_node","type":"bytes32"},{"name":"_owner","type":"address"}],"name":"transferDomainOwnership","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_registry","type":"address"}],"name":"updateRegistry","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_resolver","type":"address"}],"name":"updateResolver","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"inputs":[{"name":"_registry","type":"address"},{"name":"_resolver","type":"address"}],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"constant":true,"inputs":[{"name":"_domain","type":"string"},{"name":"_topdomain","type":"string"}],"name":"domainOwner","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"locked","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"owner","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"registry","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"resolver","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"_subdomain","type":"string"},{"name":"_domain","type":"string"},{"name":"_topdomain","type":"string"}],"name":"subdomainOwner","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"_subdomain","type":"string"},{"name":"_domain","type":"string"},{"name":"_topdomain","type":"string"}],"name":"subdomainTarget","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"}];
 const emptyAddress = '0x0000000000000000000000000000000000000000';
-const tnsAddress = "0xe47405AF3c470e91a02BFC46921C3632776F9C6b"; //mainnet
-// const tnsAddress = "0x62d6c93df120fca09a08258f3a644b5059aa12f0"; //ropsten
+// const tnsAddress = "0xe47405AF3c470e91a02BFC46921C3632776F9C6b"; //mainnet
+const tnsAddress = "0x62d6c93df120fca09a08258f3a644b5059aa12f0"; //ropsten
 
 const utils = require('web3-utils');
 const ethUtils = require('ethereumjs-util');
@@ -91,7 +91,11 @@ const getTsn = async () => {
  */
 const checkEns = async (input) => {
   const ensContract = new web3.eth.Contract(tnsAbi, tnsAddress);
-  return await ensContract.subdomainOwner(input, 'tenz-id', 'xyz')
+  try {
+    return await ensContract.methods.subdomainTarget(input, 'tenz-id', 'xyz').call();
+  } catch(e) {
+    return "0x0000000000000000000000000000000000000000"
+  }
 };
 
 /**
@@ -248,11 +252,15 @@ const relayTx = async (payload, targetAddress = personalWalletAddress) => {
     },
     body: payload
   });
-  let json = JSON.parse(await res.text());
-  if(isDebug) {
+  if (res.status === 404) {
+    return res;
+  } else {
+    var json = JSON.parse((await res.text()));
+    if (isDebug) {
       console.log(json);
+    }
+    return json;
   }
-  return json;
 };
 
 const transferEtherNoReward = async (ethAmountInWei, toAddress) => {
